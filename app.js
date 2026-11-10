@@ -1038,6 +1038,19 @@ document.addEventListener('click', e => {
   setTimeout(() => owl.classList.remove('poke'), 700);
 });
 
+/* ---------- Dark Mode Umschalter ---------- */
+const darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
+function isDark() { const t = document.documentElement.dataset.theme; return t ? t === 'dark' : darkMQ.matches; }
+function syncThemeBtn() { const d = isDark(); $('#themeBtn').textContent = d ? '☀️' : '🌙'; $('#themeBtn').title = d ? 'Heller Modus' : 'Dunkler Modus'; }
+$('#themeBtn').onclick = () => {
+  const t = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('hibou-theme', t); } catch (e) {}
+  syncThemeBtn();
+};
+darkMQ.addEventListener?.('change', syncThemeBtn);
+syncThemeBtn();
+
 $('#brandOwl').innerHTML = owlSVG('happy');
 $('#favicon').href = 'data:image/svg+xml,' + encodeURIComponent(owlSVG('happy').replace(/class="[^"]*"/, ''));
 $$('.tab').forEach(t => t.addEventListener('click', () => go(t.dataset.tab)));

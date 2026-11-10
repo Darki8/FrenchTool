@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" id="favicon">
+  <script>try { var t = localStorage.getItem('hibou-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
 </head>
 <body>
   <header class="topbar">
@@ -21,6 +22,7 @@
     <div class="hud">
       <span class="hud-item streak" id="hudStreak" title="Tage in Folge">🔥 0</span>
       <span class="hud-item xp" id="hudXP" title="Gesamt-XP">⚡ 0</span>
+      <button class="theme-btn" id="themeBtn" type="button" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten">🌙</button>
     </div>
   </header>
 
