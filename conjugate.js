@@ -46,6 +46,7 @@ function erStems(inf) {
     const s = stem.slice(0, -1) + 'i'; strong = [s, stem]; fut = [s + 'er', inf];
   } else if (new RegExp('é(' + CONS + '+)$').test(stem)) {   // préférer → préfère
     strong = [stem.replace(new RegExp('é(' + CONS + '+)$'), 'è$1')];
+    fut = [strong[0] + 'er', inf];   // espèrera (neue Rechtschreibung, wie im Heft) oder espérera
   } else if (new RegExp('[^aeiouyéèêë]e' + CONS + '$').test(stem)) {
     let s;
     if (/e[lt]er$/.test(inf) && !ELER_ETER_GRAVE.includes(inf)) s = stem + stem.slice(-1); // appeler → appelle

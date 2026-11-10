@@ -542,3 +542,96 @@ textarea { min-height: 180px; resize: vertical; font-family: ui-monospace, Conso
 .theme-btn:hover { background: var(--soft); }
 .theme-btn:active { border-bottom-width: 2px; transform: translateY(2px); }
 body, .topbar, .card, .play-foot { transition: background-color .25s, border-color .25s; }
+
+/* =========================================================
+   Spezial-Training, Si-Sätze, Regel-Tipps, Combo, Garderobe
+   ========================================================= */
+.specials { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.special {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  padding: 14px; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 16px;
+  background: var(--surface); color: var(--text); font: inherit;
+}
+.special:hover { background: var(--soft); border-color: var(--blue-b); }
+.special:active { border-bottom-width: 2px; transform: translateY(2px); }
+.special b { display: block; color: var(--head); font-size: 16px; font-weight: 900; }
+.special small { display: block; color: var(--muted); font-weight: 700; font-size: 13px; margin-top: 2px; }
+.sp-ico { font-size: 28px; width: 48px; height: 48px; flex: none; border-radius: 50%; background: var(--soft); display: flex; align-items: center; justify-content: center; }
+
+/* Regel-Tipp nach einem Fehler */
+.fb-rule {
+  margin-top: 8px; padding: 8px 12px; border-radius: 12px; font-size: 14px; font-weight: 700; line-height: 1.45;
+  background: var(--surface); color: var(--text); border: 2px solid var(--line); max-width: 560px;
+}
+
+/* Si-Sätze */
+.si-line { font-size: 21px; line-height: 1.5; }
+.blank { color: var(--blue); font-weight: 900; letter-spacing: 1px; }
+.si-inputs { display: grid; gap: 12px; }
+.si-in { display: grid; gap: 6px; font-weight: 800; color: var(--head); }
+.si-in small { color: var(--muted); font-weight: 700; margin-left: 6px; }
+.choices.two .choice { font-size: 22px; justify-content: center; padding: 18px; }
+
+/* Combo-Anzeige an der Eule */
+.prompt-owl { position: relative; }
+.combo-badge {
+  position: absolute; top: -6px; left: -8px; z-index: 2;
+  background: var(--orange); color: #fff; font-weight: 900; font-size: 14px;
+  padding: 3px 9px; border-radius: 99px; box-shadow: 0 2px 0 #CC7A00;
+  animation: owlPop .35s cubic-bezier(.3, 1.6, .5, 1);
+}
+.owl { overflow: visible; }
+.owl-fire { transform-origin: 50% 100%; animation: owlFire .35s ease-in-out infinite alternate; }
+@keyframes owlFire { from { transform: scale(1, .96); opacity: .85; } to { transform: scale(1.04, 1.06); opacity: 1; } }
+
+/* Salto ab 10 richtigen in Folge */
+.salto .owl { animation: owlSalto .95s cubic-bezier(.4, 0, .3, 1); transform-origin: 50% 55%; }
+@keyframes owlSalto {
+  0% { transform: translateY(0) rotate(0); }
+  15% { transform: translateY(4px) scale(1.08, .9); }
+  50% { transform: translateY(-46px) rotate(-200deg); }
+  85% { transform: translateY(0) rotate(-360deg); }
+  92% { transform: scale(1.08, .92) rotate(-360deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+/* Eule schaut beim Tippen aufs Eingabefeld */
+.prompt-owl.typing .owl-pupils { animation: none; transform: translate(-6px, 6px); transition: transform .2s; }
+.prompt-owl.typing .owl { animation: owlNod .5s ease-in-out infinite alternate; }
+@keyframes owlNod { to { transform: rotate(3deg) translateY(1px); } }
+
+/* Einschlafen */
+.owl-sleep { animation: owlBreathe 2.6s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes owlBreathe { 50% { transform: scale(1.03, .97); } }
+.owl-zzz text { animation: owlZ 2.4s ease-in-out infinite; opacity: 0; }
+.owl-zzz text:nth-child(2) { animation-delay: .5s; }
+.owl-zzz text:nth-child(3) { animation-delay: 1s; }
+@keyframes owlZ { 0% { opacity: 0; transform: translate(0, 6px); } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -8px); } }
+
+/* Garderobe */
+.wardrobe { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+.ward {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px 10px;
+  border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 16px; background: var(--surface); color: var(--text); font: inherit;
+}
+.ward svg { width: 74px; height: auto; }
+.ward b { color: var(--head); font-weight: 900; }
+.ward small { color: var(--muted); font-weight: 800; font-size: 12px; }
+.ward:hover:not(:disabled) { background: var(--soft); }
+.ward.on { border-color: var(--blue-b); background: var(--blue-l); }
+.ward.on small { color: var(--blue-d); }
+.ward.locked { opacity: .55; cursor: not-allowed; }
+.ward.locked svg { filter: grayscale(1); }
+
+/* Dark Mode: Augen leuchten leicht */
+:root[data-theme="dark"] .owl-eyes { filter: drop-shadow(0 0 3px rgba(255, 236, 150, .75)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .owl-eyes { filter: drop-shadow(0 0 3px rgba(255, 236, 150, .75)); } }
+
+@media (max-width: 680px) {
+  .specials { grid-template-columns: 1fr; }
+  .si-line { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .salto .owl, .owl-fire, .owl-sleep, .owl-zzz text, .prompt-owl.typing .owl, .combo-badge { animation: none !important; }
+  .owl-zzz text { opacity: 1; }
+}

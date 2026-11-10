@@ -217,7 +217,7 @@ const REGULAR_VERBS = [
   ['arranger', 'ordnen, arrangieren'], ['bouger', 'sich bewegen'], ['déranger', 'stören'],
   ['encourager', 'ermutigen'], ['partager', 'teilen'], ['divorcer', 'sich scheiden lassen'],
   ['forcer', 'zwingen'], ['exagérer', 'übertreiben'], ['posséder', 'besitzen'], ['protéger', 'schützen'],
-  ['crier', 'schreien'], ['agir', 'handeln'], ['guérir', 'heilen'], ['réagir', 'reagieren'],
+  ['crier', 'schreien'], ['préparer', 'vorbereiten'], ['agir', 'handeln'], ['guérir', 'heilen'], ['réagir', 'reagieren'],
   ['vieillir', 'älter werden'], ['confondre', 'verwechseln'],
   ['redescendre', 'wieder hinuntergehen', 'être'],
 ].map(([inf, de, aux]) => ({ inf, de, aux: aux || 'avoir' }));

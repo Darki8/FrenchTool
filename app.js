@@ -32,6 +32,17 @@ const ACCENTS = ['é', 'è', 'ê', 'ë', 'à', 'â', 'ç', 'î', 'ï', 'ô', 'û
 const PRAISE = ['RICHTIG!', 'SUPER!', 'Très bien !', 'Parfait !', 'Excellent !', 'Bravo !', 'Genau!'];
 const GROUP_LABEL = { irr: 'unregelmäßig', er: '-er', ir: '-ir', re: '-re', other: 'andere' };
 const XP_PER = 10;
+const TEST_N = 20;
+const PI_PRONS = [['je'], ['tu'], ['il', 'elle', 'on'], ['nous'], ['vous'], ['ils', 'elles']];
+// Outfits für Bleu – werden mit Gesamt-XP freigeschaltet
+const OUTFITS = [
+  { id: 'scarf', slot: 'neck', name: 'Roter Schal', xp: 50 },
+  { id: 'beret', slot: 'head', name: 'Baskenmütze', xp: 150 },
+  { id: 'glasses', slot: 'face', name: 'Brille', xp: 300 },
+  { id: 'bow', slot: 'neck', name: 'Fliege', xp: 450 },
+  { id: 'baguette', slot: 'hand', name: 'Baguette', xp: 600 },
+  { id: 'crown', slot: 'head', name: 'Krone', xp: 1000 },
+];
 
 /* =========================================================
    Helfer
@@ -55,12 +66,39 @@ function toast(msg) {
 /* =========================================================
    Die blaue Eule
    ========================================================= */
-function owlSVG(mood = 'happy') {
+const isNight = () => { const h = new Date().getHours(); return h >= 21 || h < 6; };
+const OWL_ITEMS = {
+  beret: `<g transform="rotate(-10 60 20)"><ellipse cx="60" cy="21" rx="29" ry="9" fill="#26324A"/><ellipse cx="60" cy="17" rx="24" ry="7" fill="#33415E"/><path d="M60 11 q1 -6 5 -6" stroke="#26324A" stroke-width="3" fill="none" stroke-linecap="round"/></g>`,
+  crown: `<g><path d="M40 26 L38 6 L49 16 L60 2 L71 16 L82 6 L80 26 Z" fill="#FFC800" stroke="#E5A800" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="18" r="3" fill="#FF4B4B"/><circle cx="47" cy="21" r="2" fill="#1CB0F6"/><circle cx="73" cy="21" r="2" fill="#1CB0F6"/></g>`,
+  nightcap: `<g><path d="M30 30 C36 10 70 2 88 16 C98 24 104 36 106 50 L99 49 C96 38 90 30 82 27 C66 22 46 24 30 30 Z" fill="#5C6BC0"/><path d="M28 31 Q60 17 92 29" stroke="#E8EAF6" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="104" cy="53" r="6" fill="#E8EAF6"/></g>`,
+  glasses: `<g fill="none" stroke="#1D2B3A" stroke-width="3"><circle cx="44" cy="52" r="17"/><circle cx="76" cy="52" r="17"/><path d="M61 50 q-1 -4 -2 0" /><path d="M27 48 L21 44 M93 48 L99 44"/></g>`,
+  shades: `<g class="owl-shades"><path d="M25 43 H62 V51 C62 63 54 68 44 68 C33 68 25 62 25 51 Z" fill="#111827"/><path d="M58 43 H95 V51 C95 62 87 68 76 68 C66 68 58 63 58 51 Z" fill="#111827"/><path d="M30 48 L38 48 M63 48 L71 48" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M25 45 L19 41 M95 45 L101 41" stroke="#111827" stroke-width="3"/></g>`,
+  scarf: `<g><path d="M27 76 Q60 92 93 76 L94 86 Q60 102 26 86 Z" fill="#E53935"/><path d="M70 88 L80 112 L71 114 L64 91 Z" fill="#C62828"/><path d="M34 82 L34 86 M46 86 L46 90 M58 88 L58 92" stroke="#FFCDD2" stroke-width="2"/></g>`,
+  bow: `<g><path d="M60 80 L46 72 L46 88 Z M60 80 L74 72 L74 88 Z" fill="#E53935" stroke="#B71C1C" stroke-width="1.5" stroke-linejoin="round"/><circle cx="60" cy="80" r="4" fill="#B71C1C"/></g>`,
+  baguette: `<g transform="rotate(28 100 88)"><rect x="94" y="54" width="13" height="58" rx="6.5" fill="#E0A458" stroke="#B5762F" stroke-width="1.5"/><path d="M97 64 l7 -4 M97 77 l7 -4 M97 90 l7 -4 M97 103 l7 -4" stroke="#B5762F" stroke-width="2" stroke-linecap="round"/></g>`,
+};
+const OWL_FIRE = `<g class="owl-fire"><path d="M18 112 C4 82 22 70 16 44 C32 58 34 32 46 16 C50 40 60 34 62 8 C68 30 76 36 78 16 C88 34 90 56 104 46 C98 70 116 84 102 112 Z" fill="#FF9600" opacity=".9"/><path d="M30 112 C22 88 36 80 32 62 C42 72 46 54 52 44 C56 60 64 56 68 40 C72 56 80 62 88 54 C86 74 100 86 90 112 Z" fill="#FFC800"/></g>`;
+const OWL_ZZZ = `<g class="owl-zzz" font-family="Nunito, sans-serif" font-weight="900" fill="#84D8FF"><text x="88" y="34" font-size="13">z</text><text x="97" y="22" font-size="17">z</text><text x="107" y="8" font-size="21">Z</text></g>`;
+
+/* mood: happy | think | cheer | sad | sleep
+   opts: { shades, fire } (Combo) · { only: 'id' } (Vorschau) · { plain } (ohne Outfit) */
+function owlSVG(mood = 'happy', opts = {}) {
   const body = '#1E88E5', dark = '#1565C0', ring = '#64B5F6', belly = '#BBDEFB', ink = '#1D2B3A', beak = '#FF9600';
   let eyes;
   // zufällige Verzögerung, damit nicht alle Eulen gleichzeitig blinzeln
   const delay = `style="animation-delay:-${(Math.random() * 4).toFixed(2)}s"`;
-  if (mood === 'cheer') {
+  // Outfit zusammenstellen
+  const wear = { head: null, face: null, neck: null, hand: null };
+  if (opts.only) { const o = OUTFITS.find(x => x.id === opts.only); if (o) wear[o.slot] = o.id; }
+  else if (!opts.plain) {
+    Object.assign(wear, (typeof state !== 'undefined' && state.settings.outfit) || {});
+    if (isNight()) wear.head = 'nightcap';
+  }
+  if (opts.shades) wear.face = 'shades';
+  if (mood === 'sleep') {
+    eyes = `<path d="M34 53 Q44 61 54 53" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M66 53 Q76 61 86 53" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
+  } else if (mood === 'cheer') {
     eyes = `<circle cx="44" cy="52" r="15" fill="#fff"/><circle cx="76" cy="52" r="15" fill="#fff"/>
       <path d="M36 56 Q44 45 52 56" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
       <path d="M68 56 Q76 45 84 56" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
@@ -79,17 +117,22 @@ function owlSVG(mood = 'happy') {
     : `<path class="owl-wing-l" d="${wingL}" fill="${dark}"/><path class="owl-wing-r" d="${wingR}" fill="${dark}" ${delay}/>`;
   const blush = mood === 'happy' || mood === 'cheer'
     ? `<ellipse cx="31" cy="70" rx="5" ry="3" fill="#FF8FB1" opacity=".55"/><ellipse cx="89" cy="70" rx="5" ry="3" fill="#FF8FB1" opacity=".55"/>` : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="owl owl-${mood}" viewBox="0 0 120 124" aria-hidden="true">
+  const item = slot => wear[slot] && OWL_ITEMS[wear[slot]] ? OWL_ITEMS[wear[slot]] : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="owl owl-${mood}${opts.fire ? ' on-fire' : ''}" viewBox="0 0 120 124" aria-hidden="true">
+    ${opts.fire ? OWL_FIRE : ''}
     <ellipse cx="60" cy="119" rx="30" ry="4" fill="rgba(0,0,0,.08)"/>
     <g stroke="${beak}" stroke-width="4.5" stroke-linecap="round"><path d="M45 108 l-5 8 M45 108 v9 M45 108 l5 8"/><path d="M75 108 l-5 8 M75 108 v9 M75 108 l5 8"/></g>
     ${mood === 'cheer' ? wings : ''}
     <path d="M22 52 C22 31 29 17 35 9 L46 24 C55 20 65 20 74 24 L85 9 C91 17 98 31 98 52 L98 86 C98 104 82 112 60 112 C38 112 22 104 22 86 Z" fill="${body}"/>
     <ellipse cx="60" cy="86" rx="25" ry="21" fill="${belly}"/>
     <g stroke="${ring}" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M50 82 q4 4 8 0"/><path d="M62 82 q4 4 8 0"/><path d="M56 92 q4 4 8 0"/></g>
+    ${item('neck')}
     ${mood === 'cheer' ? '' : wings}
     <circle cx="44" cy="52" r="18.5" fill="${ring}"/><circle cx="76" cy="52" r="18.5" fill="${ring}"/>
     ${eyes}${blush}
     <path d="M53 63 Q60 59 67 63 Q63 73 60 76 Q57 73 53 63Z" fill="${beak}"/>
+    ${item('face')}${item('head')}${item('hand')}
+    ${mood === 'sleep' ? OWL_ZZZ : ''}
   </svg>`;
 }
 
@@ -98,10 +141,10 @@ function owlSVG(mood = 'happy') {
    ========================================================= */
 const KEY = 'hibou-verbes-v2';
 const DEFAULTS = {
-  settings: { set: 'stem', perSet: {}, ignoreAccents: false, sound: true, speak: true },
+  settings: { set: 'stem', perSet: {}, ignoreAccents: false, sound: true, speak: true, outfit: {} },
   custom: [],
   favs: [],
-  stats: { xp: 0, streak: 0, lastDay: null, day: null, dayXP: 0, goal: 50, answered: 0, correct: 0, perVerb: {}, sessions: 0 },
+  stats: { xp: 0, streak: 0, lastDay: null, day: null, dayXP: 0, goal: 50, answered: 0, correct: 0, perVerb: {}, perForm: {}, sessions: 0 },
 };
 let state = load();
 function load() {
@@ -109,7 +152,7 @@ function load() {
     const s = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (s) return {
       settings: { ...DEFAULTS.settings, ...s.settings, perSet: (s.settings && s.settings.perSet) || {} },
-      custom: s.custom || [], favs: s.favs || [], stats: { ...DEFAULTS.stats, ...s.stats },
+      custom: s.custom || [], favs: s.favs || [], stats: { ...DEFAULTS.stats, perForm: {}, ...s.stats },
     };
   } catch (e) { /* ignore */ }
   return JSON.parse(JSON.stringify(DEFAULTS));
@@ -242,7 +285,7 @@ function go(tab) {
    HOME – Set-Übersicht mit Lernmodi
    ========================================================= */
 function renderHome() {
-  const set = curSet(), goal = state.stats.goal, dx = dayXP(), n = setVerbs(set).length;
+  const set = curSet(), goal = state.stats.goal, dx = dayXP(), n = setVerbs(set).length, weak = weakItems(999).length;
   const greet = dx >= goal ? 'Tagesziel geschafft! Magnifique 🎉'
     : dx === 0 ? 'Bonjour ! Ich bin Bleu. Hier kannst du lernen und üben.'
     : `Weiter so! Noch ${goal - dx} XP bis zu deinem Tagesziel.`;
@@ -283,10 +326,46 @@ function renderHome() {
         </div>
       </div>
       <button class="link" data-goto="verbs">+ Verben zu diesem Set hinzufügen</button>
+    </div>
+
+    <div class="card">
+      <h2>Spezial-Training</h2>
+      <div class="specials">
+        <button class="special" data-special="weak"><span class="sp-ico">🎯</span><span><b>Meine Schwachstellen</b><small>${weak ? `${weak} Form${weak === 1 ? '' : 'en'}, die du oft falsch hast` : 'Noch keine Fehler gesammelt – super!'}</small></span></button>
+        <button class="special" data-special="test"><span class="sp-ico">📝</span><span><b>Testmodus</b><small>${TEST_N} Fragen aus diesem Set, Note erst am Schluss</small></span></button>
+        <button class="special" data-special="si"><span class="sp-ico">🧩</span><span><b>Si-Sätze</b><small>Phrase hypothétique, Typ 1 – 3</small></span></button>
+        <button class="special" data-special="aux"><span class="sp-ico">🏥</span><span><b>avoir oder être?</b><small>Hilfsverb im passé composé – schnell antippen</small></span></button>
+      </div>
     </div>`;
 }
+
+/* Schwachstellen: Formen, die öfter falsch als (doppelt) richtig waren */
+function weakItems(limit = 20) {
+  return Object.entries(state.stats.perForm || {})
+    .map(([k, x]) => ({ k, ...x, score: x.w * 2 - x.r }))
+    .filter(x => x.w > 0 && x.score > 0)
+    .sort((a, b) => b.score - a.score || (b.t || 0) - (a.t || 0))
+    .map(x => {
+      const [inf, tense, pi] = x.k.split('|'), v = getVerb(inf);
+      if (!v || !TENSES.some(t => t.id === tense)) return null;
+      const form = conjugate(v)[tense][+pi];
+      return form ? { v, inf, tense, pi: +pi, pron: pick(PI_PRONS[+pi]), subj: null, form } : null;
+    })
+    .filter(Boolean).slice(0, limit);
+}
+
 $('#screen-home').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.special) {
+    const sp = b.dataset.special;
+    if (sp === 'weak') {
+      const items = weakItems();
+      if (!items.length) return toast('Du hast noch keine Schwachstellen. Übe zuerst ein paar Runden!');
+      setupMode = 'type'; startSession(items, 'type');
+    } else if (sp === 'test') { setupMode = 'test'; setupStep = 1; setupSearch = ''; renderSetup(); showScreen('setup'); }
+    else startSession(null, sp);
+    return;
+  }
   if (b.dataset.set) { state.settings.set = b.dataset.set; save(); renderHome(); }
   else if (b.dataset.start === 'list') { listTense = curSet().tenses[0]; renderList(); showScreen('list'); }
   else if (b.dataset.start) { setupMode = b.dataset.start; setupStep = 1; setupSearch = ''; renderSetup(); showScreen('setup'); }
@@ -329,13 +408,13 @@ function checkbox(attrs, checked, label, extra = '') {
 }
 function renderSetup() {
   const set = curSet(), c = cfg(set), vs = setVerbs(set);
-  const modeName = setupMode === 'mc' ? 'Multiple Choice' : 'Bewertete Übung';
+  const modeName = setupMode === 'mc' ? 'Multiple Choice' : setupMode === 'test' ? `Testmodus (${TEST_N} Fragen)` : 'Bewertete Übung';
   if (setupStep === 2) {
     $('#screen-setup').innerHTML = `
       <p class="crumb">${esc(set.title)} · ${modeName}</p>
       <div class="card hero">
         <div class="hero-owl">${owlSVG('cheer')}</div>
-        <div class="hero-text"><h2 style="margin:0 0 6px">Fast fertig!</h2><div class="bubble">Stell einen Timer ein – oder lass das Feld leer, um ohne Zeitlimit zu üben.</div></div>
+        <div class="hero-text"><h2 style="margin:0 0 6px">Fast fertig!</h2><div class="bubble">${setupMode === 'test' ? `Im Testmodus siehst du erst am Schluss, was richtig war – und bekommst eine Note. Bonne chance !` : 'Stell einen Timer ein – oder lass das Feld leer, um ohne Zeitlimit zu üben.'}</div></div>
       </div>
       <div class="card">
         <h2>Timer</h2>
@@ -447,29 +526,35 @@ function readTimer() {
    ========================================================= */
 let S = null;
 
-function startSession(reviewItems) {
+/* mode: 'type' | 'mc' | 'test' | 'si' | 'aux' */
+function startSession(reviewItems, mode = setupMode) {
   const set = curSet(), c = cfg(set);
-  const verbs = reviewItems ? [...new Map(reviewItems.map(q => [q.inf, q.v])).values()] : selectedPoolVerbs();
-  if (!verbs.length) return toast('Wähle mindestens ein Verb aus.');
-  const mins = reviewItems ? 0 : parseInt(c.timer, 10) || 0;
+  const special = mode === 'si' || mode === 'aux';
+  const verbs = special ? [] : reviewItems
+    ? [...new Map(reviewItems.filter(q => q.v).map(q => [q.inf, q.v])).values()]
+    : selectedPoolVerbs();
+  if (!special && !reviewItems && !verbs.length) return toast('Wähle mindestens ein Verb aus.');
+  const test = mode === 'test' && !reviewItems;
+  const mins = reviewItems || special ? 0 : parseInt(c.timer, 10) || 0;
+  if (S) { clearInterval(S.timer); clearTimeout(S.idle); clearTimeout(S.typeT); }
   S = {
-    verbs, tenses: c.tenses.slice(), prons: c.pronouns.slice(), mode: setupMode,
-    english: c.english, replace: c.replace,
+    verbs, tenses: c.tenses.slice(), prons: c.pronouns.slice(), mode: mode === 'test' ? 'type' : mode, test,
+    english: c.english && !special, replace: c.replace && !special,
     timed: mins > 0, timeTotal: mins * 60000,
     review: reviewItems ? shuffle(reviewItems) : null, reviewTotal: reviewItems ? reviewItems.length : 0,
-    correct: 0, wrong: 0, answered: 0, combo: 0, best: 0, xp: 0,
+    correct: 0, wrong: 0, answered: 0, combo: 0, best: 0, xp: 0, used: new Set(),
     mistakes: [], retry: [], start: Date.now(), q: null, checked: false, lastKey: '', timer: null, done: false,
   };
   $('#screen-play').innerHTML = `
     <div class="play-top">
       <button class="icon-btn" id="quitBtn" title="Schließen">✕</button>
-      <div class="bar big ${S.timed || S.review ? '' : 'hidden'}"><div class="bar-fill" id="progFill" style="width:${S.timed ? 100 : 0}%"></div></div>
-      <div class="score-box"><span class="score-lbl">Punkte</span><b id="scoreTxt">0/0</b><span id="pctTxt">0%</span></div>
+      <div class="bar big ${S.timed || S.review || S.test ? '' : 'hidden'}"><div class="bar-fill" id="progFill" style="width:${S.timed ? 100 : 0}%"></div></div>
+      <div class="score-box"><span class="score-lbl">${S.test ? 'Frage' : 'Punkte'}</span><b id="scoreTxt">0/0</b><span id="pctTxt">0%</span></div>
       <div class="play-meta" id="playMeta"></div>
     </div>
     <div class="play-tools">
       <button class="mini-btn" id="replayBtn">↻ Neu starten</button>
-      <button class="mini-btn" id="endBtn">🏁 Beenden &amp; Ergebnis</button>
+      <button class="mini-btn" id="endBtn">🏁 ${S.test ? 'Test abgeben' : 'Beenden &amp; Ergebnis'}</button>
     </div>
     <div class="play-body" id="playBody"></div>
     <div class="play-foot" id="playFoot"></div>`;
@@ -478,26 +563,58 @@ function startSession(reviewItems) {
   next();
 }
 
+/* ---------- Fragen bauen ---------- */
 function buildQ(v, tense, pron) {
   const pi = PRON_INDEX[pron];
   const subj = S.replace && REPLACE[pron] ? pick(REPLACE[pron]) : null;
   return { v, inf: v.inf, tense, pi, pron, subj, form: conjugate(v)[tense][pi] };
 }
-function randomQuestion() {
-  let q = null;
+function buildSiQ() {
+  const t = pick([1, 2, 3]), T = SI_TYPES[t];
   for (let k = 0; k < 30; k++) {
+    const [s1, i1, mid, s2, i2, end] = pick(SI_TEMPLATES);
+    const v1 = getVerb(i1), v2 = getVerb(i2);
+    if (!v1 || !v2) continue;
+    const f1 = conjugate(v1)[T.si][PRON_INDEX[s1]], f2 = conjugate(v2)[T.main][PRON_INDEX[s2]];
+    if (!f1 || !f2 || (i1 + t === S.lastKey && k < 29)) continue;
+    return { kind: 'si', type: t, s1, s2, v: v1, v2, inf: i1, inf2: i2, mid, end, f1, f2, form: f1 + ' | ' + f2, tense: 'si' + t, pi: 0 };
+  }
+  return null;
+}
+let auxPool = null;
+function buildAuxQ() {
+  if (Math.random() < 0.3) {
+    const [pron, inf, ctx, aux] = pick(AUX_CONTEXT), v = getVerb(inf), pi = PRON_INDEX[pron];
+    if (v) {
+      const full = `${AUX[aux].present[pi]} ${getPP(v)}${aux === 'être' ? (pi < 3 ? '(e)' : '(e)s') : ''}`;
+      return { kind: 'aux', v, inf, pron, pi, tense: 'aux', ctx, form: aux, full, ctxAvoir: aux === 'avoir' };
+    }
+  }
+  if (!auxPool) { const m = new Map(allVerbs().map(v => [v.inf, v])); auxPool = HEFT_PC.map(i => m.get(i)).filter(Boolean); }
+  const v = pick(auxPool), pi = v.impers ? 2 : Math.floor(Math.random() * 6);
+  return { kind: 'aux', v, inf: v.inf, pron: v.impers ? 'il' : pick(PI_PRONS[pi]), pi, tense: 'aux', ctx: '',
+    form: v.refl || v.aux === 'être' ? 'être' : 'avoir', full: conjugate(v).passe[pi] };
+}
+function randomQuestion() {
+  if (S.mode === 'si') return buildSiQ();
+  if (S.mode === 'aux') return buildAuxQ();
+  let q = null;
+  for (let k = 0; k < 40; k++) {
     q = buildQ(pick(S.verbs), pick(S.tenses), pick(S.prons));
     if (!q.form) continue;
-    if (q.inf + q.tense + q.pi === S.lastKey && k < 29) continue;
+    const key = q.inf + q.tense + q.pi;
+    if ((key === S.lastKey || (S.test && S.used.has(key))) && k < 39) continue;
     break;
   }
+  if (q && S.test) S.used.add(q.inf + q.tense + q.pi);
   return q;
 }
 function next() {
   if (!S || S.done) return;
   if (S.timed && Date.now() >= S.endAt) return finish();
+  if (S.test && S.answered >= TEST_N) return finish();
   let q;
-  const due = S.retry.findIndex(r => r.due <= S.answered);
+  const due = S.test ? -1 : S.retry.findIndex(r => r.due <= S.answered);
   if (due >= 0) q = S.retry.splice(due, 1)[0];
   else if (S.review) { q = S.review.shift() || S.retry.shift(); if (!q) return finish(); }
   else q = randomQuestion();
@@ -506,33 +623,105 @@ function next() {
   renderQ();
 }
 
+/* ---------- Texte je Fragetyp ---------- */
+const siOpen = s => (/^ils? /.test(s) ? "S'" : 'Si ') + s;
+const tidy = s => s.replace(/\s+/g, ' ').replace(/ ,/g, ',').trim();
+function qBadge(q) {
+  if (q.kind === 'si') return SI_TYPES[q.type].name;
+  if (q.kind === 'aux') return 'avoir oder être?';
+  return tenseName(q.tense);
+}
+function qPromptText(q) {
+  if (q.kind === 'si') return tidy(`${siOpen(q.s1 + ' ___')} (${q.inf}) ${q.mid} ${q.s2} ___ (${q.inf2}) ${q.end}`);
+  if (q.kind === 'aux') return tidy(`${q.pron} ___ (${q.inf}) ${q.ctx}`);
+  return promptSubject(q) + ' …';
+}
+function qAnswer(q, forSpeech) {
+  if (q.kind === 'si') {
+    const p1 = phrase({ pron: q.s1, form: q.f1, tense: '' }, forSpeech), p2 = phrase({ pron: q.s2, form: q.f2, tense: '' }, forSpeech);
+    return tidy(`${siOpen(p1)} ${q.mid} ${p2} ${q.end}`);
+  }
+  if (q.kind === 'aux') return tidy(phrase({ pron: q.pron, form: q.full, tense: 'passe' }, forSpeech) + ' ' + q.ctx);
+  return phrase(q, forSpeech);
+}
+function qTips(q) {
+  if (q.kind === 'si') return [SI_TYPES[q.type].rule + '.', 'Im Si-Satz steht nie futur oder conditionnel!'];
+  if (q.kind === 'aux') return [auxTip(q.v, q.ctxAvoir)];
+  return ruleTips(q.v, q.tense, q.pi);
+}
+
+/* ---------- Eule während der Übung ---------- */
+function setPromptOwl(mood, anim) {
+  const po = $('#promptOwl'); if (!po || !S) return;
+  const hot = !S.test && S.combo >= 5;
+  po.innerHTML = owlSVG(mood, { shades: hot, fire: !S.test && S.combo >= 10 })
+    + (!S.test && S.combo >= 3 ? `<span class="combo-badge">🔥 ${S.combo}</span>` : '');
+  if (anim) { po.classList.remove('pop', 'salto'); void po.offsetWidth; po.classList.add(anim); }
+}
+function armIdle() {
+  clearTimeout(S.idle);
+  S.idle = setTimeout(() => { if (S && !S.done && !S.checked) { S.sleeping = true; setPromptOwl('sleep'); } }, 15000);
+}
+function wake() {
+  if (!S || S.done) return;
+  if (S.sleeping) { S.sleeping = false; setPromptOwl('think', 'pop'); }
+  if (!S.checked) armIdle();
+}
+function onTyping() {
+  wake();
+  const po = $('#promptOwl'); if (!po) return;
+  po.classList.add('typing');
+  clearTimeout(S.typeT); S.typeT = setTimeout(() => po.classList.remove('typing'), 1500);
+}
+
+const answerInput = (id, ph) => `<input class="answer" id="${id}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${ph}">`;
+const accentBar = () => `<div class="accents">${ACCENTS.map(a => `<button data-acc="${a}" tabindex="-1">${a}</button>`).join('')}</div>`;
+
 function renderQ() {
   const q = S.q;
-  let input;
-  if (S.mode === 'mc') {
-    S.choices = buildChoices(q);
-    input = `<div class="choices">${S.choices.map((c, i) => `<button class="choice" data-choice="${i}"><span class="num">${i + 1}</span>${esc(displayForm(c))}</button>`).join('')}</div>`;
+  let input, line, sub = '';
+  if (q.kind === 'si') {
+    line = `<div class="prompt-line si-line">${esc(siOpen(q.s1 + ' '))}<span class="blank">___¹</span> <span class="pverb">(${esc(q.inf)})</span> ${esc(q.mid)} ${esc(q.s2)} <span class="blank">___²</span> <span class="pverb">(${esc(q.inf2)})</span> ${esc(q.end)}</div>`;
+    input = `<div class="si-inputs">
+        <label class="si-in"><span>¹ Si-Satz <small>${esc(q.s1)} · ${esc(q.inf)}</small></span>${answerInput('answer', 'Verbform eintippen…')}</label>
+        <label class="si-in"><span>² Hauptsatz <small>${esc(q.s2)} · ${esc(q.inf2)}</small></span>${answerInput('answer2', 'Verbform eintippen…')}</label>
+      </div>${accentBar()}`;
+  } else if (q.kind === 'aux') {
+    S.choices = ['avoir', 'être'];
+    line = `<div class="prompt-line"><span class="pron">${esc(q.pron)}</span> <span class="blank">___</span> <span class="pverb">(${esc(q.inf)})</span> ${esc(q.ctx)}</div>`;
+    sub = `<div class="prompt-de">passé composé – welches Hilfsverb? ${q.v.de ? '· ' + esc(q.v.de) : ''}</div>`;
+    input = `<div class="choices two">${S.choices.map((c, i) => `<button class="choice" data-choice="${i}"><span class="num">${i + 1}</span>${c}</button>`).join('')}</div>`;
   } else {
-    input = `<input class="answer" id="answer" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Konjugation eintippen…">
-      <div class="accents">${ACCENTS.map(a => `<button data-acc="${a}" tabindex="-1">${a}</button>`).join('')}</div>`;
+    if (S.mode === 'mc') {
+      S.choices = buildChoices(q);
+      input = `<div class="choices">${S.choices.map((c, i) => `<button class="choice" data-choice="${i}"><span class="num">${i + 1}</span>${esc(displayForm(c))}</button>`).join('')}</div>`;
+    } else input = answerInput('answer', 'Konjugation eintippen…') + accentBar();
+    const verbTxt = S.english && q.v.de ? esc(q.v.de) : esc(q.inf);
+    line = `<div class="prompt-line"><span class="pron">${esc(promptSubject(q))}</span> <span class="pverb">(${verbTxt})</span></div>`;
+    sub = S.english ? '' : `<div class="prompt-de">${esc(q.v.de || '')}</div>`;
   }
-  const verbTxt = S.english && q.v.de ? `${esc(q.v.de)}` : `${esc(q.inf)}`;
   $('#playBody').innerHTML = `
     <div class="prompt">
-      <div class="prompt-owl" id="promptOwl">${owlSVG('think')}</div>
+      <div class="prompt-owl" id="promptOwl"></div>
       <div class="bubble big">
-        <div class="tense-badge">${tenseName(q.tense)}</div>
-        <div class="prompt-line"><span class="pron">${esc(promptSubject(q))}</span> <span class="pverb">(${verbTxt})</span></div>
-        ${S.english ? '' : `<div class="prompt-de">${esc(q.v.de || '')}</div>`}
+        <div class="tense-badge">${esc(qBadge(q))}</div>
+        ${line}${sub}
       </div>
     </div>
     ${input}`;
+  setPromptOwl('think');
   const foot = $('#playFoot');
   foot.className = 'play-foot';
   foot.innerHTML = `<button class="btn" id="skipBtn">Überspringen</button><button class="btn btn-primary" id="checkBtn" disabled>Prüfen</button>`;
   updateScore();
-  const inp = $('#answer');
-  if (inp) { inp.addEventListener('input', () => { $('#checkBtn').disabled = !inp.value.trim(); }); setTimeout(() => inp.focus(), 30); }
+  const ins = $$('#playBody .answer');
+  S.lastInput = ins[0] || null;
+  ins.forEach(inp => {
+    inp.addEventListener('input', () => { $('#checkBtn').disabled = ins.some(i => !i.value.trim()); onTyping(); });
+    inp.addEventListener('focus', () => { S.lastInput = inp; });
+  });
+  if (ins[0]) setTimeout(() => ins[0].focus(), 30);
+  armIdle();
 }
 
 function buildChoices(q) {
@@ -558,6 +747,7 @@ function selectChoice(i) {
   const btns = $$('.choice'); if (!btns[i] || S.checked) return;
   btns.forEach((b, j) => b.classList.toggle('sel', j === i));
   $('#checkBtn').disabled = false;
+  if (S.q.kind === 'aux') check(false);   // Schnellspiel: sofort prüfen
 }
 
 function check(skip) {
@@ -565,7 +755,14 @@ function check(skip) {
   const q = S.q;
   let ok = false, note = '', given = '';
   if (skip) given = '—';
-  else if (S.mode === 'mc') {
+  else if (q.kind === 'si') {
+    const a1 = $('#answer').value, a2 = $('#answer2').value;
+    if (!a1.trim() || !a2.trim()) return;
+    const r1 = evaluate(a1, { form: q.f1 }), r2 = evaluate(a2, { form: q.f2 });
+    ok = r1.ok && r2.ok; note = r1.note || r2.note || '';
+    given = `${a1.trim()} … ${a2.trim()}`;
+    $('#answer').classList.add(r1.ok ? 'ok' : 'bad'); $('#answer2').classList.add(r2.ok ? 'ok' : 'bad');
+  } else if (S.mode === 'mc' || q.kind === 'aux') {
     const sel = $('.choice.sel'); if (!sel) return;
     const i = +sel.dataset.choice; given = displayForm(S.choices[i]); ok = S.choices[i] === q.form;
   } else {
@@ -573,21 +770,31 @@ function check(skip) {
     const r = evaluate(given, q); ok = r.ok; note = r.note || '';
   }
   S.checked = true; S.answered++;
-  const pv = state.stats.perVerb[q.inf] || (state.stats.perVerb[q.inf] = { r: 0, w: 0 });
+  clearTimeout(S.idle); clearTimeout(S.typeT); S.sleeping = false;
   state.stats.answered++;
+  if (!q.kind) {
+    const pv = state.stats.perVerb[q.inf] || (state.stats.perVerb[q.inf] = { r: 0, w: 0 });
+    const pf = state.stats.perForm[`${q.inf}|${q.tense}|${q.pi}`] || (state.stats.perForm[`${q.inf}|${q.tense}|${q.pi}`] = { r: 0, w: 0 });
+    ok ? (pv.r++, pf.r++) : (pv.w++, pf.w++); pf.t = Date.now();
+  }
   if (ok) {
-    S.correct++; S.combo++; S.best = Math.max(S.best, S.combo); S.xp += XP_PER;
-    pv.r++; state.stats.correct++; sound('ok');
-    if (S.combo % 5 === 0) toast(`🔥 ${S.combo} richtige in Folge!`);
+    S.correct++; S.combo++; S.best = Math.max(S.best, S.combo); S.xp += XP_PER; state.stats.correct++;
   } else {
-    S.wrong++; S.combo = 0; pv.w++; sound('bad');
-    if (!S.mistakes.some(m => m.inf === q.inf && m.tense === q.tense && m.pi === q.pi)) S.mistakes.push({ ...q, given });
-    S.retry.push({ ...q, due: S.answered + 3 });
+    S.wrong++; S.combo = 0;
+    if (!S.mistakes.some(m => m.inf === q.inf && m.tense === q.tense && m.pi === q.pi && m.form === q.form)) S.mistakes.push({ ...q, given });
+    if (!S.test) S.retry.push({ ...q, due: S.answered + 3 });
   }
   save();
 
-  const inp = $('#answer');
-  if (inp) { inp.disabled = true; inp.classList.add(ok ? 'ok' : 'bad'); }
+  // Testmodus: kein Feedback, direkt weiter
+  if (S.test) { if (S.answered >= TEST_N) finish(); else next(); return; }
+
+  sound(ok ? 'ok' : 'bad');
+  if (ok && S.combo === 5) toast('😎 5 richtige in Folge – Bleu holt die Sonnenbrille raus!');
+  else if (ok && S.combo % 10 === 0) toast(`🔥 ${S.combo} in Folge – Salto!`);
+  else if (ok && S.combo % 5 === 0) toast(`🔥 ${S.combo} richtige in Folge!`);
+
+  $$('#playBody .answer').forEach(inp => { inp.disabled = true; if (!q.kind) inp.classList.add(ok ? 'ok' : 'bad'); });
   $$('.accents button').forEach(b => { b.disabled = true; });
   $$('.choice').forEach((b, i) => {
     b.disabled = true;
@@ -595,10 +802,10 @@ function check(skip) {
     else if (b.classList.contains('sel')) b.classList.add('wrong');
     b.classList.remove('sel');
   });
-  const po = $('#promptOwl');
-  po.innerHTML = owlSVG(ok ? 'cheer' : 'sad');
-  po.classList.remove('pop'); void po.offsetWidth; po.classList.add('pop');
+  const po = $('#promptOwl'); if (po) po.classList.remove('typing');
+  setPromptOwl(ok ? 'cheer' : 'sad', ok && S.combo >= 10 && S.combo % 10 === 0 ? 'salto' : 'pop');
 
+  const tips = ok ? [] : qTips(q);
   const foot = $('#playFoot');
   foot.className = 'play-foot ' + (ok ? 'ok' : 'bad');
   foot.innerHTML = `
@@ -606,18 +813,25 @@ function check(skip) {
       <div class="fb-icon">${ok ? '✓' : '✕'}</div>
       <div>
         <div class="fb-title">${ok ? pick(PRAISE) : 'Sollte sein:'}</div>
-        <div class="fb-answer">${esc(phrase(q))} <button class="speak" data-say="${esc(phrase(q, true))}" title="Anhören">🔊</button></div>
+        <div class="fb-answer">${esc(qAnswer(q))} <button class="speak" data-say="${esc(qAnswer(q, true))}" title="Anhören">🔊</button></div>
         ${note ? `<div class="fb-note">${esc(note)}</div>` : ''}
+        ${tips.length ? `<div class="fb-rule">💡 ${tips.slice(0, 3).map(esc).join('<br>')}</div>` : ''}
       </div>
     </div>
     <button class="btn ${ok ? 'btn-primary' : 'btn-danger'}" id="nextBtn">Weiter</button>`;
-  if (state.settings.speak) speak(phrase(q, true));
+  if (state.settings.speak) speak(qAnswer(q, true));
   updateScore();
   setTimeout(() => { const n = $('#nextBtn'); if (n) n.focus(); }, 30);
 }
 
 function updateScore() {
   if (!S) return;
+  if (S.test) {
+    $('#scoreTxt').textContent = `${Math.min(S.answered + 1, TEST_N)}/${TEST_N}`;
+    $('#pctTxt').textContent = '';
+    $('#progFill').style.width = (S.answered / TEST_N * 100) + '%';
+    return;
+  }
   $('#scoreTxt').textContent = `${S.correct}/${S.answered}`;
   $('#pctTxt').textContent = (S.answered ? Math.round(S.correct / S.answered * 100) : 0) + '%';
   if (S.review) $('#progFill').style.width = Math.min(100, S.correct / S.reviewTotal * 100) + '%';
@@ -638,15 +852,18 @@ function tick() {
 }
 
 function insertAtCursor(ch) {
-  const inp = $('#answer'); if (!inp || inp.disabled) return;
+  const inp = (S && S.lastInput) || $('#answer'); if (!inp || inp.disabled) return;
   const s = inp.selectionStart ?? inp.value.length, e = inp.selectionEnd ?? inp.value.length;
   inp.value = inp.value.slice(0, s) + ch + inp.value.slice(e);
   inp.setSelectionRange(s + ch.length, s + ch.length);
   inp.focus(); inp.dispatchEvent(new Event('input'));
 }
 
+function stopSession() { if (S) { clearInterval(S.timer); clearTimeout(S.idle); clearTimeout(S.typeT); S.done = true; } }
+
 $('#screen-play').addEventListener('mousedown', e => { if (e.target.closest('[data-acc]')) e.preventDefault(); });
 $('#screen-play').addEventListener('click', e => {
+  if (S && !S.done) wake();
   const b = e.target.closest('button'); if (!b || !S) return;
   if (b.dataset.acc) insertAtCursor(b.dataset.acc);
   else if (b.dataset.choice !== undefined) selectChoice(+b.dataset.choice);
@@ -655,10 +872,10 @@ $('#screen-play').addEventListener('click', e => {
   else if (b.id === 'skipBtn') check(true);
   else if (b.id === 'nextBtn') next();
   else if (b.id === 'endBtn') finish();
-  else if (b.id === 'replayBtn') { clearInterval(S.timer); S.done = true; startSession(); }
+  else if (b.id === 'replayBtn') { const m = S.test ? 'test' : S.mode; stopSession(); startSession(null, m); }
   else if (b.id === 'quitBtn') {
     confirmBox('Willst du wirklich gehen?', 'Dein Fortschritt in dieser Übung geht verloren.', 'Verlassen', () => {
-      clearInterval(S.timer); S.done = true; S = null; go('home');
+      stopSession(); S = null; go('home');
     }, 'Bleiben');
   }
 });
@@ -666,34 +883,51 @@ $('#screen-play').addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (!$('#modal').classList.contains('hidden')) { if (e.key === 'Escape') closeModal(); return; }
   if (!S || S.done || !$('#screen-play').classList.contains('active') || e.repeat) return;
-  if (e.key === 'Enter') { e.preventDefault(); S.checked ? next() : check(false); }
-  else if (S.mode === 'mc' && !S.checked && /^[1-4]$/.test(e.key)) selectChoice(+e.key - 1);
+  wake();
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (S.checked) return next();
+    const empty = $$('#playBody .answer').find(i => !i.value.trim());
+    if (empty && S.q.kind === 'si') return empty.focus();
+    check(false);
+  }
+  else if ((S.mode === 'mc' || S.mode === 'aux') && !S.checked && /^[1-4]$/.test(e.key)) selectChoice(+e.key - 1);
 });
 
 function finish() {
   if (!S || S.done) return;
-  S.done = true; clearInterval(S.timer);
-  const acc = S.answered ? Math.round(S.correct / S.answered * 100) : 0;
+  stopSession();
+  const total = S.test ? TEST_N : S.answered;
+  const acc = total ? Math.round(S.correct / total * 100) : 0;
+  const xpBefore = state.stats.xp;
   if (S.correct > 0) { addXP(S.xp); bumpStreak(); }
   state.stats.sessions++; save(); updateHud();
+  const unlocked = OUTFITS.filter(o => xpBefore < o.xp && state.stats.xp >= o.xp);
   const secs = S.timed ? Math.min(S.timeTotal, Date.now() - S.start) : Date.now() - S.start;
-  const title = S.answered === 0 ? 'Keine Antworten' : acc === 100 ? 'Perfekt!' : acc >= 80 ? 'Super gemacht!' : acc >= 50 ? 'Gut gemacht!' : 'Nicht aufgeben!';
+  // Schweizer Note 1–6, auf halbe Noten gerundet
+  const grade = S.test ? Math.round((1 + 5 * S.correct / TEST_N) * 2) / 2 : null;
+  const title = S.test
+    ? (grade >= 5.5 ? 'Ausgezeichnet!' : grade >= 5 ? 'Sehr gut!' : grade >= 4 ? 'Bestanden!' : 'Weiter üben – du schaffst das!')
+    : S.answered === 0 ? 'Keine Antworten' : acc === 100 ? 'Perfekt!' : acc >= 80 ? 'Super gemacht!' : acc >= 50 ? 'Gut gemacht!' : 'Nicht aufgeben!';
+  const what = S.mode === 'si' ? 'Si-Sätze' : S.mode === 'aux' ? 'avoir oder être?' : (S.test ? 'Testmodus · ' : '') + curSet().title;
   const mistakes = S.mistakes;
   $('#screen-result').innerHTML = `
     <div class="result">
       ${owlSVG(acc >= 50 ? 'cheer' : 'happy')}
       <h1>${title}</h1>
-      <p class="sub">Deine Ergebnisse · ${esc(curSet().title)}</p>
+      <p class="sub">Deine Ergebnisse · ${esc(what)}</p>
       <div class="tiles">
-        <div class="tile"><div class="tile-h">Punkte</div><div class="tile-v">${S.correct}/${S.answered}</div></div>
+        ${S.test ? `<div class="tile gold"><div class="tile-h">Note</div><div class="tile-v">🎓 ${String(grade)}</div></div>` : ''}
+        <div class="tile"><div class="tile-h">Punkte</div><div class="tile-v">${S.correct}/${total}</div></div>
         <div class="tile purple"><div class="tile-h">Genauigkeit</div><div class="tile-v">🎯 ${acc}%</div></div>
-        <div class="tile gold"><div class="tile-h">XP</div><div class="tile-v">⚡ ${S.correct > 0 ? S.xp : 0}</div></div>
+        ${S.test ? '' : `<div class="tile gold"><div class="tile-h">XP</div><div class="tile-v">⚡ ${S.correct > 0 ? S.xp : 0}</div></div>`}
         <div class="tile orange"><div class="tile-h">Zeit</div><div class="tile-v">⏱ ${fmtTime(secs)}</div></div>
       </div>
+      ${S.best >= 5 && !S.test ? `<p class="sub">🔥 Beste Serie: ${S.best} richtige in Folge</p>` : ''}
       ${mistakes.length ? `<h3>Fehler</h3><div class="mistakes">${mistakes.map(m => `
         <div class="mistake">
-          <div class="m-q"><small>${tenseName(m.tense)} · ${esc(m.inf)}</small>${esc(promptSubject(m))} …</div>
-          <div class="m-a">${m.given && m.given !== '—' ? `<s>${esc(m.given)}</s>` : ''}${esc(phrase(m))}</div>
+          <div class="m-q"><small>${esc(qBadge(m))}${m.kind ? '' : ' · ' + esc(m.inf)}</small>${esc(qPromptText(m))}</div>
+          <div class="m-a">${m.given && m.given !== '—' ? `<s>${esc(m.given)}</s>` : ''}${esc(qAnswer(m))}</div>
         </div>`).join('')}</div>` : ''}
       <div class="result-actions">
         ${mistakes.length ? `<button class="btn btn-gold" id="rReview">Fehler üben (${mistakes.length})</button>` : ''}
@@ -704,12 +938,16 @@ function finish() {
   S.lastMistakes = mistakes;
   showScreen('result');
   sound('end');
-  if (acc >= 80 && S.answered >= 5) confetti();
+  if ((S.test ? grade >= 5 : acc >= 80 && S.answered >= 5)) confetti();
+  if (unlocked.length) setTimeout(() => {
+    toast(`🎁 Neues Outfit für Bleu: ${unlocked.map(o => o.name).join(', ')}! Zieh es unter „Fortschritt“ an.`);
+    confetti();
+  }, 900);
 }
 $('#screen-result').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'rReview' && S) startSession(S.lastMistakes.map(({ given, due, ...q }) => q));
-  else if (b.id === 'rAgain') startSession();
+  if (b.id === 'rReview' && S) startSession(S.lastMistakes.map(({ given, due, ...q }) => q), S.mode);
+  else if (b.id === 'rAgain' && S) startSession(null, S.test ? 'test' : S.mode);
   else if (b.id === 'rHome') { S = null; go('home'); }
 });
 
@@ -744,7 +982,7 @@ function renderVerbs() {
         </div>
       </div>
       <p class="hint">${vs.length} Verben, davon ${state.custom.length} eigene. Regelmäßige Verben werden automatisch konjugiert, du kannst aber jede Form selbst anpassen. Neue Verben kannst du direkt dem Set <b>${esc(setById('stem').title)}</b> hinzufügen.</p>
-      <div class="chips small">${[...VERB_SETS.filter(s => s.verbs).map(s => [s.id, `${s.de} (${setVerbs(s).length})`]), ['all', 'Alle Verben'], ['mine', 'Meine']].map(([k, l]) => `<button class="chip ${vSetFilter === k ? 'on' : ''}" data-vf="${k}">${esc(l)}</button>`).join('')}</div>
+      <div class="chips small">${[...VERB_SETS.filter(s => s.verbs).map(s => [s.id, `${s.title} (${setVerbs(s).length})`]), ['all', 'Alle Verben'], ['mine', 'Meine']].map(([k, l]) => `<button class="chip ${vSetFilter === k ? 'on' : ''}" data-vf="${k}">${esc(l)}</button>`).join('')}</div>
       <input class="search" id="vSearch" placeholder="🔍 Verb suchen…" value="${esc(vSearch)}">
       <div id="vList"></div>
       <div class="io">
@@ -1011,6 +1249,16 @@ function renderStats() {
       <div class="card-head"><h2>Deine schwierigsten Verben</h2>${hard.length ? '<button class="btn btn-gold btn-sm" id="favHard">★ Als Lieblingsverben merken</button>' : ''}</div>
       ${hard.length ? hard.map(h => `<div class="hard"><b>${esc(h.inf)}</b><div class="bar"><div class="bar-fill" style="width:${Math.round(h.rate * 100)}%"></div></div><span>${h.w} / ${h.n} falsch</span></div>`).join('')
         : '<p class="hint">Noch nicht genug Daten. Übe ein paar Runden, dann zeigt dir Bleu hier, wo es noch hakt.</p>'}
+      ${weakItems(999).length ? `<button class="btn btn-primary btn-sm" id="weakGo" style="margin-top:12px">🎯 Meine Schwachstellen üben (${weakItems(999).length} Formen)</button>` : ''}
+    </div>
+    <div class="card">
+      <h2>Bleus Garderobe</h2>
+      <p class="hint">Mit XP schaltest du neue Outfits frei. Klicke auf ein Outfit, um es an- oder auszuziehen.${isNight() ? ' 🌙 Es ist spät – Bleu trägt gerade seine Schlafmütze.' : ''}</p>
+      <div class="wardrobe">${OUTFITS.map(o => {
+        const open = s.xp >= o.xp, on = (state.settings.outfit || {})[o.slot] === o.id;
+        return `<button class="ward ${on ? 'on' : ''} ${open ? '' : 'locked'}" data-outfit="${o.id}" ${open ? '' : 'disabled'}>
+          ${owlSVG('happy', { only: o.id })}<b>${o.name}</b><small>${open ? (on ? 'angezogen ✓' : 'anziehen') : `🔒 ab ${o.xp} XP`}</small></button>`;
+      }).join('')}</div>
     </div>
     <div class="card">
       <h2>Daten</h2>
@@ -1021,6 +1269,14 @@ function renderStats() {
 $('#screen-stats').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.goal) { state.stats.goal = +b.dataset.goal; save(); renderStats(); }
+  else if (b.dataset.outfit) {
+    const o = OUTFITS.find(x => x.id === b.dataset.outfit), of = state.settings.outfit || (state.settings.outfit = {});
+    of[o.slot] = of[o.slot] === o.id ? null : o.id;
+    state.settings.outfit = { ...of }; save();
+    $('#brandOwl').innerHTML = owlSVG('happy');
+    const y = window.scrollY; renderStats(); window.scrollTo(0, y);
+  }
+  else if (b.id === 'weakGo') { const items = weakItems(); if (items.length) { setupMode = 'type'; startSession(items, 'type'); } }
   else if (b.id === 'favHard') {
     state.favs = [...new Set([...state.favs, ...hardList])]; save();
     toast('Gemerkt! Wähle beim Einrichten „★ Nur Lieblingsverben“, um sie zu üben.');
@@ -1057,7 +1313,7 @@ darkMQ.addEventListener?.('change', syncThemeBtn);
 syncThemeBtn();
 
 $('#brandOwl').innerHTML = owlSVG('happy');
-$('#favicon').href = 'data:image/svg+xml,' + encodeURIComponent(owlSVG('happy').replace(/class="[^"]*"/, ''));
+$('#favicon').href = 'data:image/svg+xml,' + encodeURIComponent(owlSVG('happy', { plain: true }).replace(/class="[^"]*"/, ''));
 $$('.tab').forEach(t => t.addEventListener('click', () => go(t.dataset.tab)));
 $('.brand').addEventListener('click', () => go('home'));
 go('home');
