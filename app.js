@@ -8,8 +8,11 @@ const TENSES = [
   { id: 'present', fr: 'le présent', de: 'Präsens' },
   { id: 'passe', fr: 'le passé composé', de: 'Perfekt' },
   { id: 'imparfait', fr: "l'imparfait", de: 'Imperfekt' },
-  { id: 'futur', fr: 'le futur', de: 'Futur' },
-  { id: 'conditionnel', fr: 'le conditionnel', de: 'Konditional' },
+  { id: 'futur', fr: 'le futur simple', de: 'Futur I' },
+  { id: 'futproche', fr: 'le futur proche', de: 'nahe Zukunft (aller + Inf.)' },
+  { id: 'futant', fr: 'le futur antérieur', de: 'Futur II' },
+  { id: 'conditionnel', fr: 'le conditionnel présent', de: 'Konditional I' },
+  { id: 'condpasse', fr: 'le conditionnel passé', de: 'Konditional II' },
   { id: 'subjonctif', fr: 'le présent du subjonctif', de: 'Subjonctif' },
   { id: 'pqp', fr: 'le plus-que-parfait', de: 'Plusquamperfekt' },
 ];
@@ -257,7 +260,7 @@ function renderHome() {
 
     <div class="sets">${VERB_SETS.map(s => `
       <button class="set-card ${s.id === set.id ? 'on' : ''}" data-set="${s.id}">
-        <span class="set-ico">${s.id === 'stem' ? '✏️' : '📚'}</span>
+        <span class="set-ico">${s.ico || '📚'}</span>
         <span class="set-txt"><b>${esc(s.title)}</b><small>${esc(s.de)} · ${setVerbs(s).length} Verben</small></span>
       </button>`).join('')}
     </div>
@@ -304,6 +307,7 @@ function renderList() {
     <div class="ctable">${vs.map((v, n) => {
       const f = conjugate(v)[listTense];
       return `<div class="cbox"><h4>${n + 1}. ${esc(v.inf)} <small>${esc(v.de || '')}</small></h4>${f.map((form, i) => {
+        if (!form) return '';
         const q = { pron: ['je', 'tu', 'il', 'nous', 'vous', 'ils'][i], tense: listTense, form };
         return `<button class="cline" data-say="${esc(phrase(q, true))}">${esc(phrase(q))}</button>`;
       }).join('')}</div>`;
@@ -537,7 +541,7 @@ function buildChoices(q) {
   const isDup = (f, list) => list.includes(f) || expand(f).some(x => same.has(x));
   const distract = [];
   // typischer Fehler: Form ohne Stammänderung (achete, commencons, mangons, emploie→employe …)
-  if (q.tense === 'present' && q.inf.endsWith('er')) {
+  if (q.tense === 'present' && q.inf.endsWith('er') && !q.v.refl) {
     const naive = q.inf.slice(0, -2) + ['e', 'es', 'e', 'ons', 'ez', 'ent'][q.pi];
     if (!isDup(naive, distract)) distract.push(naive);
   }
@@ -759,7 +763,7 @@ function renderVerbList() {
     const g = verbGroup(v);
     return `<div class="vrow">
       <div class="vinfo"><b>${esc(v.inf)}</b><span>${esc(v.de || '—')}</span></div>
-      <div class="vbadges"><span class="badge g-${g}">${GROUP_LABEL[g]}</span>${stemSet.has(v.inf) ? '<span class="badge g-er">Stammänd.</span>' : ''}${v.aux === 'être' ? '<span class="badge g-other">être</span>' : ''}${v.custom ? `<span class="badge mine">${v.overrides ? 'angepasst' : 'eigenes'}</span>` : ''}</div>
+      <div class="vbadges"><span class="badge g-${g}">${GROUP_LABEL[g]}</span>${stemSet.has(v.inf) ? '<span class="badge g-er">Stammänd.</span>' : ''}${v.refl ? '<span class="badge g-ir">reflexiv</span>' : ''}${v.aux === 'être' ? '<span class="badge g-other">être</span>' : ''}${v.custom ? `<span class="badge mine">${v.overrides ? 'angepasst' : 'eigenes'}</span>` : ''}</div>
       <div class="vactions">
         <button class="mini-btn ${state.favs.includes(v.inf) ? 'on' : ''}" data-vfav="${esc(v.inf)}" title="Lieblingsverb">★</button>
         <button class="mini-btn" data-vview="${esc(v.inf)}" title="Konjugationstabelle">📋</button>
@@ -827,6 +831,7 @@ function openTable(inf) {
     <div class="modal-head"><div><h2>${esc(v.inf)}</h2><small>${esc(v.de || '')} · Hilfsverb: ${v.aux} · Partizip: ${esc(getPP(v))}</small></div><button class="icon-btn" data-close>✕</button></div>
     <p class="hint">Tipp: Klicke auf eine Form, um sie dir vorlesen zu lassen.</p>
     <div class="ctable">${TENSES.map(t => `<div class="cbox"><h4>${t.fr}</h4>${f[t.id].map((form, i) => {
+      if (!form) return '';
       const q = { pron: ['je', 'tu', 'il', 'nous', 'vous', 'ils'][i], tense: t.id, form };
       return `<button class="cline" data-say="${esc(phrase(q, true))}">${esc(phrase(q))}</button>`;
     }).join('')}</div>`).join('')}</div>

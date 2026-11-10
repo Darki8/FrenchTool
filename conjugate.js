@@ -12,10 +12,16 @@ const ELER_ETER_GRAVE = ['acheter', 'racheter', 'geler', 'congeler', 'dégeler',
 
 const AUX = {
   avoir: { present: ['ai', 'as', 'a', 'avons', 'avez', 'ont'],
-           imparfait: ['avais', 'avais', 'avait', 'avions', 'aviez', 'avaient'] },
+           imparfait: ['avais', 'avais', 'avait', 'avions', 'aviez', 'avaient'],
+           futur: ['aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront'],
+           conditionnel: ['aurais', 'aurais', 'aurait', 'aurions', 'auriez', 'auraient'] },
   être:  { present: ['suis', 'es', 'est', 'sommes', 'êtes', 'sont'],
-           imparfait: ['étais', 'étais', 'était', 'étions', 'étiez', 'étaient'] },
+           imparfait: ['étais', 'étais', 'était', 'étions', 'étiez', 'étaient'],
+           futur: ['serai', 'seras', 'sera', 'serons', 'serez', 'seront'],
+           conditionnel: ['serais', 'serais', 'serait', 'serions', 'seriez', 'seraient'] },
 };
+const ALLER = ['vais', 'vas', 'va', 'allons', 'allez', 'vont'];
+const REFL = ['me', 'te', 'se', 'nous', 'vous', 'se'];
 const IMP_END = ['ais', 'ais', 'ait', 'ions', 'iez', 'aient'];
 const FUT_END = ['ai', 'as', 'a', 'ons', 'ez', 'ont'];
 
@@ -114,14 +120,22 @@ function compound(v, auxForms) {
     `${a} ${etre ? p + (i < 3 ? '(e)' : '(e)s') : p}`)));
 }
 
+/* Reflexivpronomen vor eine Form setzen (me/m', te/t', se/s') */
+function withRefl(i, form) {
+  const p = REFL[i];
+  return uniqJoin(splitAlt(form).map(f => (p.length === 2 && VOWEL_RE.test(f)) ? p[0] + "'" + f : p + ' ' + f));
+}
+const baseInf = inf => inf.replace(/^(se |s')/, '');
+
 /* Gibt alle Zeitformen als Arrays mit 6 Formen zurück */
 function conjugate(v) {
+  if (v.refl) return conjugateRefl(v);
   const F = v.forms || {};
   const aux = AUX[v.aux === 'être' ? 'être' : 'avoir'];
   const present = F.present || computePresent(v);
   const vv = F.present ? { ...v, present } : v;
   const stems = futStems(vv);
-  return {
+  const out = {
     present,
     passe: compound(vv, aux.present),
     imparfait: F.imparfait || computeImparfait(vv),
@@ -129,5 +143,23 @@ function conjugate(v) {
     conditionnel: F.conditionnel || IMP_END.map(e => uniqJoin(stems.map(s => s + e))),
     subjonctif: F.subjonctif || computeSubj(vv),
     pqp: compound(vv, aux.imparfait),
+    futproche: ALLER.map(a => a + ' ' + v.inf),
+    futant: compound(vv, aux.futur),
+    condpasse: compound(vv, aux.conditionnel),
   };
+  // unpersönliche Verben (il faut, il pleut): nur die 3. Person Singular
+  if (v.impers) for (const k in out) out[k] = out[k].map((f, i) => i === 2 ? f : '');
+  return out;
+}
+
+/* Reflexive Verben: Grundverb konjugieren, dann Pronomen davor (immer mit être) */
+function conjugateRefl(v) {
+  const base = baseInf(v.inf);
+  const r = conjugate({ ...v, inf: base, refl: false, forms: null, aux: 'être' });
+  const out = {};
+  for (const k in r) out[k] = r[k].map((f, i) => f ? withRefl(i, f) : '');
+  out.futproche = ALLER.map((a, i) => a + ' ' + withRefl(i, base));
+  const F = v.forms || {};
+  for (const k in F) if (Array.isArray(F[k]) && F[k].length === 6) out[k] = F[k];
+  return out;
 }

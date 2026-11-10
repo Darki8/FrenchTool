@@ -94,6 +94,87 @@ const IRREGULAR_VERBS = [
     present: ['conduis', 'conduis', 'conduit', 'conduisons', 'conduisez', 'conduisent'] },
   { inf: 'renvoyer', de: 'zurückschicken', pp: 'renvoyé', fut: 'renverr',
     present: ['renvoie', 'renvoies', 'renvoie', 'renvoyons', 'renvoyez', 'renvoient'] },
+
+  // ---- aus dem Heft: -ir ----
+  { inf: 'mentir', de: 'lügen', pp: 'menti',
+    present: ['mens', 'mens', 'ment', 'mentons', 'mentez', 'mentent'] },
+  { inf: 'fuir', de: 'fliehen', pp: 'fui',
+    present: ['fuis', 'fuis', 'fuit', 'fuyons', 'fuyez', 'fuient'] },
+  { inf: 'cueillir', de: 'pflücken', pp: 'cueilli', fut: 'cueiller',
+    present: ['cueille', 'cueilles', 'cueille', 'cueillons', 'cueillez', 'cueillent'] },
+  { inf: 'couvrir', de: 'bedecken', pp: 'couvert',
+    present: ['couvre', 'couvres', 'couvre', 'couvrons', 'couvrez', 'couvrent'] },
+  { inf: 'souffrir', de: 'leiden', pp: 'souffert',
+    present: ['souffre', 'souffres', 'souffre', 'souffrons', 'souffrez', 'souffrent'] },
+  // ---- aus dem Heft: -re ----
+  { inf: 'construire', de: 'bauen', pp: 'construit',
+    present: ['construis', 'construis', 'construit', 'construisons', 'construisez', 'construisent'] },
+  { inf: 'détruire', de: 'zerstören', pp: 'détruit',
+    present: ['détruis', 'détruis', 'détruit', 'détruisons', 'détruisez', 'détruisent'] },
+  { inf: 'réduire', de: 'reduzieren', pp: 'réduit',
+    present: ['réduis', 'réduis', 'réduit', 'réduisons', 'réduisez', 'réduisent'] },
+  { inf: 'produire', de: 'herstellen', pp: 'produit',
+    present: ['produis', 'produis', 'produit', 'produisons', 'produisez', 'produisent'] },
+  { inf: 'traduire', de: 'übersetzen', pp: 'traduit',
+    present: ['traduis', 'traduis', 'traduit', 'traduisons', 'traduisez', 'traduisent'] },
+  { inf: 'craindre', de: 'fürchten', pp: 'craint',
+    present: ['crains', 'crains', 'craint', 'craignons', 'craignez', 'craignent'] },
+  { inf: 'atteindre', de: 'erreichen', pp: 'atteint',
+    present: ['atteins', 'atteins', 'atteint', 'atteignons', 'atteignez', 'atteignent'] },
+  { inf: 'éteindre', de: 'ausschalten, löschen', pp: 'éteint',
+    present: ['éteins', 'éteins', 'éteint', 'éteignons', 'éteignez', 'éteignent'] },
+  { inf: 'joindre', de: 'verbinden, beifügen', pp: 'joint',
+    present: ['joins', 'joins', 'joint', 'joignons', 'joignez', 'joignent'] },
+  { inf: 'peindre', de: 'malen', pp: 'peint',
+    present: ['peins', 'peins', 'peint', 'peignons', 'peignez', 'peignent'] },
+  { inf: 'plaindre', de: 'bedauern', pp: 'plaint',
+    present: ['plains', 'plains', 'plaint', 'plaignons', 'plaignez', 'plaignent'] },
+  { inf: 'paraître', de: 'scheinen', pp: 'paru',
+    present: ['parais', 'parais', 'paraît', 'paraissons', 'paraissez', 'paraissent'] },
+  { inf: 'apparaître', de: 'erscheinen', aux: 'être', pp: 'apparu',
+    present: ['apparais', 'apparais', 'apparaît', 'apparaissons', 'apparaissez', 'apparaissent'] },
+  { inf: 'disparaître', de: 'verschwinden', pp: 'disparu',
+    present: ['disparais', 'disparais', 'disparaît', 'disparaissons', 'disparaissez', 'disparaissent'] },
+  { inf: 'battre', de: 'schlagen', pp: 'battu',
+    present: ['bats', 'bats', 'bat', 'battons', 'battez', 'battent'] },
+  { inf: 'rompre', de: 'brechen', pp: 'rompu',
+    present: ['romps', 'romps', 'rompt', 'rompons', 'rompez', 'rompent'] },
+  { inf: 'sourire', de: 'lächeln', pp: 'souri',
+    present: ['souris', 'souris', 'sourit', 'sourions', 'souriez', 'sourient'] },
+  { inf: 'permettre', de: 'erlauben', pp: 'permis',
+    present: ['permets', 'permets', 'permet', 'permettons', 'permettez', 'permettent'] },
+  { inf: 'promettre', de: 'versprechen', pp: 'promis',
+    present: ['promets', 'promets', 'promet', 'promettons', 'promettez', 'promettent'] },
+  { inf: 'admettre', de: 'zugeben, zulassen', pp: 'admis',
+    present: ['admets', 'admets', 'admet', 'admettons', 'admettez', 'admettent'] },
+  { inf: 'commettre', de: 'begehen (Fehler, Tat)', pp: 'commis',
+    present: ['commets', 'commets', 'commet', 'commettons', 'commettez', 'commettent'] },
+  { inf: 'décrire', de: 'beschreiben', pp: 'décrit',
+    present: ['décris', 'décris', 'décrit', 'décrivons', 'décrivez', 'décrivent'] },
+  { inf: 'plaire', de: 'gefallen', pp: 'plu',
+    present: ['plais', 'plais', 'plaît', 'plaisons', 'plaisez', 'plaisent'] },
+  { inf: 'suffire', de: 'genügen', pp: 'suffi',
+    present: ['suffis', 'suffis', 'suffit', 'suffisons', 'suffisez', 'suffisent'] },
+  // ---- aus dem Heft: -oir ----
+  { inf: 'décevoir', de: 'enttäuschen', pp: 'déçu', fut: 'décevr',
+    present: ['déçois', 'déçois', 'déçoit', 'décevons', 'décevez', 'déçoivent'] },
+  { inf: 'apercevoir', de: 'bemerken, erblicken', pp: 'aperçu', fut: 'apercevr',
+    present: ['aperçois', 'aperçois', 'aperçoit', 'apercevons', 'apercevez', 'aperçoivent'] },
+  { inf: 'valoir', de: 'wert sein', pp: 'valu', fut: 'vaudr',
+    present: ['vaux', 'vaux', 'vaut', 'valons', 'valez', 'valent'],
+    subj: ['vaille', 'vailles', 'vaille', 'valions', 'valiez', 'vaillent'] },
+  // unpersönliche Verben: nur "il"
+  { inf: 'falloir', de: 'müssen, nötig sein (il faut)', impers: true, pp: 'fallu', fut: 'faudr', imp: 'fall',
+    present: ['', '', 'faut', '', '', ''], subj: ['', '', 'faille', '', '', ''] },
+  { inf: 'pleuvoir', de: 'regnen', impers: true, pp: 'plu', fut: 'pleuvr', imp: 'pleuv',
+    present: ['', '', 'pleut', '', '', ''], subj: ['', '', 'pleuve', '', '', ''] },
+  // reflexive Verben (Formen ohne Pronomen, das Pronomen wird automatisch ergänzt)
+  { inf: "s'endormir", de: 'einschlafen', refl: true, aux: 'être', pp: 'endormi',
+    present: ['endors', 'endors', 'endort', 'endormons', 'endormez', 'endorment'] },
+  { inf: "s'asseoir", de: 'sich setzen', refl: true, aux: 'être', pp: 'assis', fut: 'assiér',
+    present: ['assieds', 'assieds', 'assied', 'asseyons', 'asseyez', 'asseyent'] },
+  { inf: "s'enfuir", de: 'fliehen, weglaufen', refl: true, aux: 'être', pp: 'enfui',
+    present: ['enfuis', 'enfuis', 'enfuit', 'enfuyons', 'enfuyez', 'enfuient'] },
 ];
 
 // [Infinitiv, Deutsch, Hilfsverb (optional, Standard: avoir)]
@@ -131,12 +212,65 @@ const REGULAR_VERBS = [
   ['vendre', 'verkaufen'], ['attendre', 'warten'], ['répondre', 'antworten'],
   ['entendre', 'hören'], ['perdre', 'verlieren'], ['rendre', 'zurückgeben'],
   ['descendre', 'hinuntergehen', 'être'],
+  // aus dem Heft
+  ['bavarder', 'plaudern'], ['grimper', 'klettern'], ['inventer', 'erfinden'], ['laver', 'waschen'],
+  ['arranger', 'ordnen, arrangieren'], ['bouger', 'sich bewegen'], ['déranger', 'stören'],
+  ['encourager', 'ermutigen'], ['partager', 'teilen'], ['divorcer', 'sich scheiden lassen'],
+  ['forcer', 'zwingen'], ['exagérer', 'übertreiben'], ['posséder', 'besitzen'], ['protéger', 'schützen'],
+  ['crier', 'schreien'], ['agir', 'handeln'], ['guérir', 'heilen'], ['réagir', 'reagieren'],
+  ['vieillir', 'älter werden'], ['confondre', 'verwechseln'],
+  ['redescendre', 'wieder hinuntergehen', 'être'],
 ].map(([inf, de, aux]) => ({ inf, de, aux: aux || 'avoir' }));
+
+// Reflexive regelmäßige Verben (Passé composé immer mit être)
+const REFLEXIVE_VERBS = [
+  ['se préparer', 'sich vorbereiten'], ['se promener', 'spazieren gehen'], ['s\'appeler', 'heißen'],
+  ['se rappeler', 'sich erinnern'], ['s\'ennuyer', 'sich langweilen'], ['se lever', 'aufstehen'],
+].map(([inf, de]) => ({ inf, de, aux: 'être', refl: true }));
 
 const BUILTIN_VERBS = [
   ...IRREGULAR_VERBS.map(v => ({ aux: 'avoir', ...v, irr: true })),
   ...REGULAR_VERBS,
+  ...REFLEXIVE_VERBS,
 ];
+
+/* Verben aus dem Heft, nach Blättern sortiert */
+const HEFT_ER = ['parler', 'aimer', 'bavarder', 'chercher', 'donner', 'entrer', 'fermer', 'grimper',
+  'habiter', 'inventer', 'laver', 'monter', 'manger', 'arranger', 'bouger', 'corriger', 'changer',
+  'déranger', 'encourager', 'nager', 'partager', 'ranger', 'voyager', 'lancer', 'annoncer', 'avancer',
+  'commencer', 'divorcer', 'effacer', 'forcer', 'menacer', 'placer', 'remplacer', 'mener', 'acheter',
+  'enlever', 'peser', 'promener', 'se promener', 'appeler', "s'appeler", 'se rappeler', 'jeter',
+  'espérer', 'exagérer', 'posséder', 'protéger', 'répéter', 'nettoyer', 'employer', 'ennuyer',
+  "s'ennuyer", 'essayer', 'envoyer', 'payer'];
+const HEFT_IR = ['finir', 'agir', 'choisir', 'guérir', 'obéir', 'réagir', 'réfléchir', 'remplir',
+  'réussir', 'vieillir', 'dormir', "s'endormir", 'mentir', 'partir', 'sentir', 'sortir', 'servir',
+  'ouvrir', 'cueillir', 'couvrir', 'offrir', 'souffrir', 'courir', 'mourir', 'fuir', 'venir', 'tenir'];
+const HEFT_RE = ['attendre', 'confondre', 'descendre', 'entendre', 'perdre', 'rendre', 'répondre',
+  'vendre', 'conduire', 'construire', 'détruire', 'réduire', 'produire', 'traduire', 'craindre',
+  'atteindre', 'éteindre', 'joindre', 'peindre', 'plaindre', 'connaître', 'paraître', 'apparaître',
+  'disparaître', 'naître', 'battre', 'mettre', 'boire', 'prendre', 'croire', 'rire', 'dire', 'suivre',
+  'faire', 'vivre', 'lire'];
+const HEFT_OIR = ["s'asseoir", 'savoir', 'devoir', 'voir', 'falloir', 'pleuvoir', 'pouvoir', 'vouloir',
+  'avoir', 'être', 'aller', 'se préparer', "s'endormir"];
+const HEFT_PC = ['parler', 'ranger', 'commencer', 'essayer', 'finir', 'partir', 'ouvrir', 'souffrir',
+  'cueillir', 'entendre', 'rompre', 'conduire', 'produire', 'craindre', 'joindre', 'éteindre',
+  'connaître', 'disparaître', 'recevoir', 'décevoir', 'apercevoir',
+  // Verbes de l'hôpital (être)
+  'naître', 'mourir', 'venir', 'aller', 'arriver', 'entrer', 'sortir', 'monter', 'descendre',
+  'tomber', 'retourner', 'rester', 'rentrer', 'redescendre', 'devenir',
+  // reflexiv (être)
+  'se lever', "s'appeler", "s'enfuir", 'se préparer',
+  // participes passés irréguliers
+  'lire', 'voir', 'boire', 'tenir', 'courir', 'valoir', 'prendre', 'comprendre', 'apprendre',
+  'mettre', 'permettre', 'promettre', 'admettre', 'commettre', 'rire', 'sourire', 'dire', 'écrire',
+  'décrire', 'vouloir', 'pouvoir', 'devoir', 'savoir', 'falloir', 'plaire', 'pleuvoir', 'croire',
+  'avoir', 'être', 'faire', 'vivre', 'suivre', 'suffire', "s'asseoir"];
+const HEFT_FUT = ['parler', 'finir', 'partir', 'attendre', 'ouvrir', 'jeter', 'acheter', 'employer',
+  'espérer', 'appeler', 'envoyer', 'être', 'avoir', 'faire', 'aller', 'venir', 'tenir', 'voir',
+  'devoir', 'pouvoir', 'savoir', 'vouloir', 'courir', 'mourir', "s'asseoir", 'apercevoir',
+  'décevoir', 'recevoir', 'pleuvoir', 'falloir', 'valoir', 'écrire', 'manger', 'prendre', 'sortir'];
+const HEFT_ALL = [...new Set([...HEFT_ER, ...HEFT_IR, ...HEFT_RE, ...HEFT_OIR, ...HEFT_PC, ...HEFT_FUT, 'crier'])];
+const HEFT_TENSES = ['present', 'imparfait', 'passe', 'pqp', 'futur', 'futproche', 'futant', 'conditionnel', 'condpasse'];
 
 /* =========================================================
    Übungs-Sets (wie bei conjuguemos)
@@ -145,7 +279,7 @@ const BUILTIN_VERBS = [
    ========================================================= */
 const VERB_SETS = [
   {
-    id: 'stem',
+    id: 'stem', ico: '✏️',
     title: 'Le Présent (stem-changing verbs)',
     de: 'Präsens – Verben mit Stammänderung',
     tenses: ['present'],
@@ -155,11 +289,19 @@ const VERB_SETS = [
       'peser', 'placer', 'préférer', 'promener', 'prononcer', 'ranger', 'remplacer', 'renoncer',
       'renvoyer', 'répéter', 'songer', 'voyager'],
   },
+  { id: 'h-er', ico: '🥖', title: 'Verbes en -er (présent)', de: 'Heft S. 8: -er, -ger, -cer, doubl-acc-i', tenses: ['present'], verbs: HEFT_ER },
+  { id: 'h-ir', ico: '🌿', title: 'Verbes en -ir (présent)', de: 'Heft: -ir, -mir/-tir/-vir, cocos, Einzelverben', tenses: ['present'], verbs: HEFT_IR },
+  { id: 'h-re', ico: '📖', title: 'Verbes en -re (présent)', de: 'Heft: -re, -uire, -indre, -aître, Einzelverben', tenses: ['present'], verbs: HEFT_RE },
+  { id: 'h-oir', ico: '👁️', title: 'Verbes en -oir, avoir, être, aller', de: 'Heft S. 11: -oir, 3 unregelmässige, pronominaux', tenses: ['present'], verbs: HEFT_OIR },
+  { id: 'h-imp', ico: '🕰️', title: "L'imparfait", de: 'Heft 1.4: Stamm von « nous » + -ais …', tenses: ['imparfait'], verbs: HEFT_ALL },
+  { id: 'h-pc', ico: '🏥', title: 'Passé composé & plus-que-parfait', de: "Heft 1.5 & 2.1: avoir/être, verbes de l'hôpital, participes", tenses: ['passe', 'pqp'], verbs: HEFT_PC },
+  { id: 'h-fut', ico: '🚀', title: 'Futur & conditionnel', de: 'Heft 2.3 & 2.4: futur proche/simple/antérieur, conditionnel', tenses: ['futproche', 'futur', 'futant', 'conditionnel', 'condpasse'], verbs: HEFT_FUT },
+  { id: 'h-all', ico: '🎓', title: 'Mein Heft – alles', de: 'Alle Verben & Zeitformen von den Blättern', tenses: HEFT_TENSES, verbs: HEFT_ALL },
   {
-    id: 'all',
+    id: 'all', ico: '📚',
     title: 'Toutes les conjugaisons',
     de: 'Alle Verben & alle Zeitformen',
-    tenses: ['present', 'passe', 'imparfait', 'futur', 'conditionnel', 'subjonctif', 'pqp'],
+    tenses: ['present', 'passe', 'imparfait', 'pqp', 'futur', 'futproche', 'futant', 'conditionnel', 'condpasse', 'subjonctif'],
     verbs: null,
   },
 ];
