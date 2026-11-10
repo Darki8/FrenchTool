@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hibou – Französische Verben üben</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" id="favicon">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-owl" id="brandOwl"></span><span class="brand-name">hibou</span></div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="home"><span class="tab-ico">🎯</span><span class="tab-txt">Lernen</span></button>
+      <button class="tab" data-tab="verbs"><span class="tab-ico">📚</span><span class="tab-txt">Verben</span></button>
+      <button class="tab" data-tab="stats"><span class="tab-ico">🏆</span><span class="tab-txt">Fortschritt</span></button>
+    </nav>
+    <div class="hud">
+      <span class="hud-item streak" id="hudStreak" title="Tage in Folge">🔥 0</span>
+      <span class="hud-item xp" id="hudXP" title="Gesamt-XP">⚡ 0</span>
+    </div>
+  </header>
+
+  <main>
+    <section id="screen-home" class="screen active"></section>
+    <section id="screen-setup" class="screen"></section>
+    <section id="screen-list" class="screen"></section>
+    <section id="screen-verbs" class="screen"></section>
+    <section id="screen-stats" class="screen"></section>
+    <section id="screen-play" class="screen play"></section>
+    <section id="screen-result" class="screen"></section>
+  </main>
+
+  <div id="modal" class="modal hidden"><div class="modal-card" id="modalCard"></div></div>
+  <div id="toast" class="toast"></div>
+
+  <script src="verbs.js"></script>
+  <script src="conjugate.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
