@@ -6,6 +6,7 @@
    ========================================================= */
 const TENSES = [
   { id: 'present', fr: 'le présent', de: 'Präsens' },
+  { id: 'imperatif', fr: "l'impératif", de: 'Befehlsform' },
   { id: 'passe', fr: 'le passé composé', de: 'Perfekt' },
   { id: 'imparfait', fr: "l'imparfait", de: 'Imperfekt' },
   { id: 'futur', fr: 'le futur simple', de: 'Futur I' },
@@ -143,6 +144,7 @@ const KEY = 'hibou-verbes-v2';
 const DEFAULTS = {
   settings: { set: 'stem', perSet: {}, ignoreAccents: false, sound: true, speak: true, outfit: {} },
   custom: [],
+  vocab: {},
   favs: [],
   stats: { xp: 0, streak: 0, lastDay: null, day: null, dayXP: 0, goal: 50, answered: 0, correct: 0, perVerb: {}, perForm: {}, sessions: 0 },
 };
@@ -152,7 +154,7 @@ function load() {
     const s = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (s) return {
       settings: { ...DEFAULTS.settings, ...s.settings, perSet: (s.settings && s.settings.perSet) || {} },
-      custom: s.custom || [], favs: s.favs || [], stats: { ...DEFAULTS.stats, perForm: {}, ...s.stats },
+      vocab: s.vocab || {}, custom: s.custom || [], favs: s.favs || [], stats: { ...DEFAULTS.stats, perForm: {}, ...s.stats },
     };
   } catch (e) { /* ignore */ }
   return JSON.parse(JSON.stringify(DEFAULTS));
@@ -230,11 +232,12 @@ if ('speechSynthesis' in window) speechSynthesis.getVoices();
    ========================================================= */
 const subjectOf = q => q.subj || q.pron;
 const QUE = s => (/^[aeiouyhéè]/i.test(s) ? "qu'" : 'que ') + s;
-function promptSubject(q) { const s = subjectOf(q); return q.tense === 'subjonctif' ? QUE(s) : s; }
+function promptSubject(q) { const s = subjectOf(q); return q.tense === 'subjonctif' ? QUE(s) : q.tense === 'imperatif' ? '(' + s + ')' : s; }
 function phrase(q, forSpeech) {
   const alts = splitAlt(q.form);
   const first = (alts[0] || '').replace(/\([^)]*\)/g, '');
   const formTxt = forSpeech ? first : alts.join(' / ');
+  if (q.tense === 'imperatif') return formTxt;   // Impératif ohne Subjekt
   const subj = subjectOf(q);
   let s = subj === 'je' && VOWEL_RE.test(first) ? "j'" + formTxt : subj + ' ' + formTxt;
   if (q.tense === 'subjonctif') s = QUE(s);
@@ -254,10 +257,12 @@ function expand(form) {
   return [...new Set(out.map(cleanBasic))];
 }
 function evaluate(input, q) {
-  const a = cleanAns(input, q), vs = expand(q.form);
-  if (vs.includes(a)) return { ok: true };
-  const sa = stripAcc(a);
-  if (vs.some(v => stripAcc(v) === sa)) {
+  // mit Subjekt („vous vous levez“) oder ohne („vous levez“ bei reflexiven Verben) – beides zählt
+  const cands = [cleanAns(input, q), cleanBasic(input).replace(/^(que |qu')/, '')];
+  const vs = expand(q.form);
+  if (cands.some(a => vs.includes(a))) return { ok: true };
+  const sas = cands.map(stripAcc);
+  if (vs.some(v => sas.includes(stripAcc(v)))) {
     return state.settings.ignoreAccents ? { ok: true, note: 'Achte auf die Akzente!' } : { ok: false, note: 'Fast! Nur die Akzente stimmen nicht.' };
   }
   return { ok: false };
@@ -277,6 +282,7 @@ function go(tab) {
   if (tab === 'home') renderHome();
   if (tab === 'verbs') renderVerbs();
   if (tab === 'stats') renderStats();
+  if (tab === 'vocab') renderVocab();
   updateHud();
   showScreen(tab);
 }
@@ -335,6 +341,8 @@ function renderHome() {
         <button class="special" data-special="test"><span class="sp-ico">📝</span><span><b>Testmodus</b><small>${TEST_N} Fragen aus diesem Set, Note erst am Schluss</small></span></button>
         <button class="special" data-special="si"><span class="sp-ico">🧩</span><span><b>Si-Sätze</b><small>Phrase hypothétique, Typ 1 – 3</small></span></button>
         <button class="special" data-special="aux"><span class="sp-ico">🏥</span><span><b>avoir oder être?</b><small>Hilfsverb im passé composé – schnell antippen</small></span></button>
+        <button class="special" data-special="past"><span class="sp-ico">🎞️</span><span><b>Imparfait, PC oder PQP?</b><small>Emploi des temps du passé – Lückensätze</small></span></button>
+        <button class="special" data-goto="vocab"><span class="sp-ico">🃏</span><span><b>Wörter lernen</b><small>Vocabulaire EMP – ${VOCAB.length} Wörter in 28 Tranches</small></span></button>
       </div>
     </div>`;
 }
@@ -527,9 +535,9 @@ function readTimer() {
 let S = null;
 
 /* mode: 'type' | 'mc' | 'test' | 'si' | 'aux' */
-function startSession(reviewItems, mode = setupMode) {
+function startSession(reviewItems, mode = setupMode, opts = {}) {
   const set = curSet(), c = cfg(set);
-  const special = mode === 'si' || mode === 'aux';
+  const special = mode === 'si' || mode === 'aux' || mode === 'past' || mode === 'card' || !!opts.vocab;
   const verbs = special ? [] : reviewItems
     ? [...new Map(reviewItems.filter(q => q.v).map(q => [q.inf, q.v])).values()]
     : selectedPoolVerbs();
@@ -543,6 +551,7 @@ function startSession(reviewItems, mode = setupMode) {
     timed: mins > 0, timeTotal: mins * 60000,
     review: reviewItems ? shuffle(reviewItems) : null, reviewTotal: reviewItems ? reviewItems.length : 0,
     correct: 0, wrong: 0, answered: 0, combo: 0, best: 0, xp: 0, used: new Set(),
+    opts, vocab: !!opts.vocab, label: opts.label || '', vocGraded: new Set(),
     mistakes: [], retry: [], start: Date.now(), q: null, checked: false, lastKey: '', timer: null, done: false,
   };
   $('#screen-play').innerHTML = `
@@ -595,7 +604,16 @@ function buildAuxQ() {
   return { kind: 'aux', v, inf: v.inf, pron: v.impers ? 'il' : pick(PI_PRONS[pi]), pi, tense: 'aux', ctx: '',
     form: v.refl || v.aux === 'être' ? 'être' : 'avoir', full: conjugate(v).passe[pi] };
 }
+function buildPastQ() {
+  for (let k = 0; k < 20; k++) {
+    const idx = Math.floor(Math.random() * PAST_SENTENCES.length);
+    if ('past' + idx === S.lastKey && k < 19) continue;
+    const [text, blanks] = PAST_SENTENCES[idx];
+    return { kind: 'past', idx, text, blanks, inf: 'past' + idx, tense: '', pi: '', form: blanks.map(b => b[1]).join(' | ') };
+  }
+}
 function randomQuestion() {
+  if (S.mode === 'past') return buildPastQ();
   if (S.mode === 'si') return buildSiQ();
   if (S.mode === 'aux') return buildAuxQ();
   let q = null;
@@ -626,17 +644,29 @@ function next() {
 /* ---------- Texte je Fragetyp ---------- */
 const siOpen = s => (/^ils? /.test(s) ? "S'" : 'Si ') + s;
 const tidy = s => s.replace(/\s+/g, ' ').replace(/ ,/g, ',').trim();
+const pastFill = (q, fn) => q.text.replace(/\{(\d)\}/g, (m, i) => fn(q.blanks[+i], +i));
 function qBadge(q) {
   if (q.kind === 'si') return SI_TYPES[q.type].name;
   if (q.kind === 'aux') return 'avoir oder être?';
+  if (q.kind === 'past') return 'Imparfait, PC oder PQP?';
+  if (q.kind === 'voc') return `Tranche ${q.it.t} · ${q.it.sec}`;
   return tenseName(q.tense);
 }
 function qPromptText(q) {
   if (q.kind === 'si') return tidy(`${siOpen(q.s1 + ' ___')} (${q.inf}) ${q.mid} ${q.s2} ___ (${q.inf2}) ${q.end}`);
   if (q.kind === 'aux') return tidy(`${q.pron} ___ (${q.inf}) ${q.ctx}`);
+  if (q.kind === 'past') return pastFill(q, b => `___ (${b[0]})`);
+  if (q.kind === 'voc') return q.q;
   return promptSubject(q) + ' …';
 }
+/* Was vorgelesen wird – bei Vokabeln immer das französische Wort */
+function qSpeak(q) {
+  if (q.kind === 'voc') return splitAlt(q.it.fr)[0].split(', ')[0].replace(/\([^)]*\)/g, '').replace(/\.\.\./g, '');
+  return qAnswer(q, true);
+}
 function qAnswer(q, forSpeech) {
+  if (q.kind === 'past') return pastFill(q, b => forSpeech ? b[1].replace(/\([^)]*\)/g, '') : b[1]);
+  if (q.kind === 'voc') return q.form;
   if (q.kind === 'si') {
     const p1 = phrase({ pron: q.s1, form: q.f1, tense: '' }, forSpeech), p2 = phrase({ pron: q.s2, form: q.f2, tense: '' }, forSpeech);
     return tidy(`${siOpen(p1)} ${q.mid} ${p2} ${q.end}`);
@@ -647,7 +677,19 @@ function qAnswer(q, forSpeech) {
 function qTips(q) {
   if (q.kind === 'si') return [SI_TYPES[q.type].rule + '.', 'Im Si-Satz steht nie futur oder conditionnel!'];
   if (q.kind === 'aux') return [auxTip(q.v, q.ctxAvoir)];
+  if (q.kind === 'past') return [...new Set(q.blanks.filter((b, i) => !q.okParts || !q.okParts[i]).map(b => PAST_RULES[b[2]]))];
+  if (q.kind === 'voc') return q.it.note ? [q.it.note] : [];
   return ruleTips(q.v, q.tense, q.pi);
+}
+
+/* Freie Formen (Si-Sätze, Lückensätze) prüfen – mit oder ohne Subjektpronomen */
+function evalForm(input, form) {
+  const vs = expand(form), a1 = cleanBasic(input), a2 = cleanAns(input);
+  if (vs.includes(a1) || vs.includes(a2)) return { ok: true };
+  if (vs.some(v => stripAcc(v) === stripAcc(a1) || stripAcc(v) === stripAcc(a2))) {
+    return state.settings.ignoreAccents ? { ok: true, note: 'Achte auf die Akzente!' } : { ok: false, note: 'Fast! Nur die Akzente stimmen nicht.' };
+  }
+  return { ok: false };
 }
 
 /* ---------- Eule während der Übung ---------- */
@@ -691,6 +733,22 @@ function renderQ() {
     line = `<div class="prompt-line"><span class="pron">${esc(q.pron)}</span> <span class="blank">___</span> <span class="pverb">(${esc(q.inf)})</span> ${esc(q.ctx)}</div>`;
     sub = `<div class="prompt-de">passé composé – welches Hilfsverb? ${q.v.de ? '· ' + esc(q.v.de) : ''}</div>`;
     input = `<div class="choices two">${S.choices.map((c, i) => `<button class="choice" data-choice="${i}"><span class="num">${i + 1}</span>${c}</button>`).join('')}</div>`;
+  } else if (q.kind === 'past') {
+    const sup = ['¹', '²', '³'];
+    line = `<div class="prompt-line si-line">${pastFill(q, (b, i) => `<span class="blank">___${sup[i]}</span> <span class="pverb">(${esc(b[0])})</span>`)}</div>`;
+    sub = '<div class="prompt-de">Imparfait, passé composé oder plus-que-parfait?</div>';
+    input = `<div class="si-inputs">${q.blanks.map((b, i) => `<label class="si-in"><span>${sup[i]} <small>${esc(b[0])}</small></span>${answerInput(i ? 'answer' + (i + 1) : 'answer', 'Verbform eintippen…')}</label>`).join('')}</div>${accentBar()}`;
+  } else if (q.kind === 'voc') {
+    const toFr = q.dir === 'df';
+    line = `<div class="prompt-line voc-word">${esc(q.q)}</div>`;
+    sub = `<div class="prompt-de">${toFr ? 'Deutsch → Französisch' : 'Französisch → Deutsch'}${!toFr && q.it.note && q.it.note.length < 12 ? ' · ' + esc(q.it.note) : ''}</div>`;
+    if (S.mode === 'card') {
+      input = `<div class="flash" id="flash"><div class="flash-hint">Überlege dir die Antwort – dann umdrehen.</div>
+        <div class="flash-back hidden" id="flashBack"><b>${esc(q.form)}</b>${q.it.note ? `<small>${esc(q.it.note)}</small>` : ''}</div></div>`;
+    } else if (S.mode === 'mc') {
+      S.choices = vocChoices(q);
+      input = `<div class="choices">${S.choices.map((c, i) => `<button class="choice" data-choice="${i}"><span class="num">${i + 1}</span>${esc(c)}</button>`).join('')}</div>`;
+    } else input = answerInput('answer', toFr ? 'Auf Französisch eintippen…' : 'Auf Deutsch eintippen…') + (toFr ? accentBar() : '');
   } else {
     if (S.mode === 'mc') {
       S.choices = buildChoices(q);
@@ -712,7 +770,10 @@ function renderQ() {
   setPromptOwl('think');
   const foot = $('#playFoot');
   foot.className = 'play-foot';
-  foot.innerHTML = `<button class="btn" id="skipBtn">Überspringen</button><button class="btn btn-primary" id="checkBtn" disabled>Prüfen</button>`;
+  foot.innerHTML = S.mode === 'card'
+    ? `<span></span><button class="btn btn-primary" id="flipBtn">Umdrehen <small>(Leertaste)</small></button>`
+    : `<button class="btn" id="skipBtn">Überspringen</button><button class="btn btn-primary" id="checkBtn" disabled>Prüfen</button>`;
+  S.flipped = false;
   updateScore();
   const ins = $$('#playBody .answer');
   S.lastInput = ins[0] || null;
@@ -755,10 +816,18 @@ function check(skip) {
   const q = S.q;
   let ok = false, note = '', given = '';
   if (skip) given = '—';
+  else if (S.mode === 'card') { ok = !!S.cardOk; given = ok ? '' : '—'; }
+  else if (q.kind === 'past') {
+    const ins = $$('#playBody .answer'); if (ins.some(i => !i.value.trim())) return;
+    const rs = q.blanks.map((b, i) => evalForm(ins[i].value, b[1]));
+    q.okParts = rs.map(r => r.ok); ok = rs.every(r => r.ok); note = (rs.find(r => r.note) || {}).note || '';
+    given = ins.map(i => i.value.trim()).join(' … ');
+    ins.forEach((inp, i) => inp.classList.add(rs[i].ok ? 'ok' : 'bad'));
+  }
   else if (q.kind === 'si') {
     const a1 = $('#answer').value, a2 = $('#answer2').value;
     if (!a1.trim() || !a2.trim()) return;
-    const r1 = evaluate(a1, { form: q.f1 }), r2 = evaluate(a2, { form: q.f2 });
+    const r1 = evalForm(a1, q.f1), r2 = evalForm(a2, q.f2);
     ok = r1.ok && r2.ok; note = r1.note || r2.note || '';
     given = `${a1.trim()} … ${a2.trim()}`;
     $('#answer').classList.add(r1.ok ? 'ok' : 'bad'); $('#answer2').classList.add(r2.ok ? 'ok' : 'bad');
@@ -767,7 +836,7 @@ function check(skip) {
     const i = +sel.dataset.choice; given = displayForm(S.choices[i]); ok = S.choices[i] === q.form;
   } else {
     given = $('#answer').value; if (!given.trim()) return;
-    const r = evaluate(given, q); ok = r.ok; note = r.note || '';
+    const r = q.kind === 'voc' ? vocEval(given, q) : evaluate(given, q); ok = r.ok; note = r.note || '';
   }
   S.checked = true; S.answered++;
   clearTimeout(S.idle); clearTimeout(S.typeT); S.sleeping = false;
@@ -776,6 +845,8 @@ function check(skip) {
     const pv = state.stats.perVerb[q.inf] || (state.stats.perVerb[q.inf] = { r: 0, w: 0 });
     const pf = state.stats.perForm[`${q.inf}|${q.tense}|${q.pi}`] || (state.stats.perForm[`${q.inf}|${q.tense}|${q.pi}`] = { r: 0, w: 0 });
     ok ? (pv.r++, pf.r++) : (pv.w++, pf.w++); pf.t = Date.now();
+  }
+  if (q.kind === 'voc' && !S.vocGraded.has(q.id)) { S.vocGraded.add(q.id); vocabGrade(q.id, ok);
   }
   if (ok) {
     S.correct++; S.combo++; S.best = Math.max(S.best, S.combo); S.xp += XP_PER; state.stats.correct++;
@@ -788,13 +859,15 @@ function check(skip) {
 
   // Testmodus: kein Feedback, direkt weiter
   if (S.test) { if (S.answered >= TEST_N) finish(); else next(); return; }
+  // Karteikarten: Antwort war schon sichtbar – kurze Reaktion, dann direkt weiter
+  if (S.mode === 'card') { sound(ok ? 'ok' : 'bad'); setPromptOwl(ok ? 'cheer' : 'sad', 'pop'); updateScore(); setTimeout(() => { if (S && !S.done && S.checked) next(); }, 450); return; }
 
   sound(ok ? 'ok' : 'bad');
   if (ok && S.combo === 5) toast('😎 5 richtige in Folge – Bleu holt die Sonnenbrille raus!');
   else if (ok && S.combo % 10 === 0) toast(`🔥 ${S.combo} in Folge – Salto!`);
   else if (ok && S.combo % 5 === 0) toast(`🔥 ${S.combo} richtige in Folge!`);
 
-  $$('#playBody .answer').forEach(inp => { inp.disabled = true; if (!q.kind) inp.classList.add(ok ? 'ok' : 'bad'); });
+  $$('#playBody .answer').forEach(inp => { inp.disabled = true; if (!q.kind || q.kind === 'voc') inp.classList.add(ok ? 'ok' : 'bad'); });
   $$('.accents button').forEach(b => { b.disabled = true; });
   $$('.choice').forEach((b, i) => {
     b.disabled = true;
@@ -813,13 +886,13 @@ function check(skip) {
       <div class="fb-icon">${ok ? '✓' : '✕'}</div>
       <div>
         <div class="fb-title">${ok ? pick(PRAISE) : 'Sollte sein:'}</div>
-        <div class="fb-answer">${esc(qAnswer(q))} <button class="speak" data-say="${esc(qAnswer(q, true))}" title="Anhören">🔊</button></div>
+        <div class="fb-answer">${esc(qAnswer(q))} <button class="speak" data-say="${esc(qSpeak(q))}" title="Anhören">🔊</button></div>
         ${note ? `<div class="fb-note">${esc(note)}</div>` : ''}
         ${tips.length ? `<div class="fb-rule">💡 ${tips.slice(0, 3).map(esc).join('<br>')}</div>` : ''}
       </div>
     </div>
     <button class="btn ${ok ? 'btn-primary' : 'btn-danger'}" id="nextBtn">Weiter</button>`;
-  if (state.settings.speak) speak(qAnswer(q, true));
+  if (state.settings.speak) speak(qSpeak(q));
   updateScore();
   setTimeout(() => { const n = $('#nextBtn'); if (n) n.focus(); }, 30);
 }
@@ -859,6 +932,14 @@ function insertAtCursor(ch) {
   inp.focus(); inp.dispatchEvent(new Event('input'));
 }
 
+function flipCard() {
+  if (!S || S.flipped || S.checked) return;
+  S.flipped = true;
+  const back = $('#flashBack'); if (back) back.classList.remove('hidden');
+  const hint = $('.flash-hint'); if (hint) hint.classList.add('hidden');
+  if (state.settings.speak) speak(qSpeak(S.q));
+  $('#playFoot').innerHTML = '<button class="btn btn-danger" id="cardNo">✕ Nicht gewusst <small>(1)</small></button><button class="btn btn-primary" id="cardYes">✓ Gewusst <small>(2)</small></button>';
+}
 function stopSession() { if (S) { clearInterval(S.timer); clearTimeout(S.idle); clearTimeout(S.typeT); S.done = true; } }
 
 $('#screen-play').addEventListener('mousedown', e => { if (e.target.closest('[data-acc]')) e.preventDefault(); });
@@ -871,11 +952,14 @@ $('#screen-play').addEventListener('click', e => {
   else if (b.id === 'checkBtn') check(false);
   else if (b.id === 'skipBtn') check(true);
   else if (b.id === 'nextBtn') next();
+  else if (b.id === 'flipBtn') flipCard();
+  else if (b.id === 'cardYes') { S.cardOk = true; check(false); }
+  else if (b.id === 'cardNo') { S.cardOk = false; check(false); }
   else if (b.id === 'endBtn') finish();
-  else if (b.id === 'replayBtn') { const m = S.test ? 'test' : S.mode; stopSession(); startSession(null, m); }
+  else if (b.id === 'replayBtn') { const m = S.test ? 'test' : S.mode, o = S.opts; stopSession(); if (o.again) o.again(); else startSession(null, m); }
   else if (b.id === 'quitBtn') {
     confirmBox('Willst du wirklich gehen?', 'Dein Fortschritt in dieser Übung geht verloren.', 'Verlassen', () => {
-      stopSession(); S = null; go('home');
+      const v = S.vocab; stopSession(); S = null; go(v ? 'vocab' : 'home');
     }, 'Bleiben');
   }
 });
@@ -884,11 +968,17 @@ document.addEventListener('keydown', e => {
   if (!$('#modal').classList.contains('hidden')) { if (e.key === 'Escape') closeModal(); return; }
   if (!S || S.done || !$('#screen-play').classList.contains('active') || e.repeat) return;
   wake();
+  if (S.mode === 'card') {
+    if (S.checked) return;
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!S.flipped) return flipCard(); if (e.key === 'Enter') { S.cardOk = true; check(false); } return; }
+    if (S.flipped && (e.key === '1' || e.key === '2')) { S.cardOk = e.key === '2'; check(false); }
+    return;
+  }
   if (e.key === 'Enter') {
     e.preventDefault();
     if (S.checked) return next();
     const empty = $$('#playBody .answer').find(i => !i.value.trim());
-    if (empty && S.q.kind === 'si') return empty.focus();
+    if (empty && (S.q.kind === 'si' || S.q.kind === 'past')) return empty.focus();
     check(false);
   }
   else if ((S.mode === 'mc' || S.mode === 'aux') && !S.checked && /^[1-4]$/.test(e.key)) selectChoice(+e.key - 1);
@@ -909,7 +999,7 @@ function finish() {
   const title = S.test
     ? (grade >= 5.5 ? 'Ausgezeichnet!' : grade >= 5 ? 'Sehr gut!' : grade >= 4 ? 'Bestanden!' : 'Weiter üben – du schaffst das!')
     : S.answered === 0 ? 'Keine Antworten' : acc === 100 ? 'Perfekt!' : acc >= 80 ? 'Super gemacht!' : acc >= 50 ? 'Gut gemacht!' : 'Nicht aufgeben!';
-  const what = S.mode === 'si' ? 'Si-Sätze' : S.mode === 'aux' ? 'avoir oder être?' : (S.test ? 'Testmodus · ' : '') + curSet().title;
+  const what = S.vocab ? S.label : S.mode === 'past' ? 'Imparfait, PC oder PQP?' : S.mode === 'si' ? 'Si-Sätze' : S.mode === 'aux' ? 'avoir oder être?' : (S.test ? 'Testmodus · ' : '') + curSet().title;
   const mistakes = S.mistakes;
   $('#screen-result').innerHTML = `
     <div class="result">
@@ -946,9 +1036,9 @@ function finish() {
 }
 $('#screen-result').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'rReview' && S) startSession(S.lastMistakes.map(({ given, due, ...q }) => q), S.mode);
-  else if (b.id === 'rAgain' && S) startSession(null, S.test ? 'test' : S.mode);
-  else if (b.id === 'rHome') { S = null; go('home'); }
+  if (b.id === 'rReview' && S) startSession(S.lastMistakes.map(({ given, due, ...q }) => q), S.mode, S.opts);
+  else if (b.id === 'rAgain' && S) { if (S.opts.again) S.opts.again(); else startSession(null, S.test ? 'test' : S.mode); }
+  else if (b.id === 'rHome') { const v = S && S.vocab; S = null; go(v ? 'vocab' : 'home'); }
 });
 
 function confetti() {
@@ -965,6 +1055,219 @@ function confetti() {
   document.body.appendChild(box);
   setTimeout(() => box.remove(), 5500);
 }
+
+/* =========================================================
+   WÖRTER – Vocabulaire EMP (Karteikarten mit Leitner-System)
+   ========================================================= */
+const VOCAB = [], VOCAB_T = [];
+(typeof VOCAB_RAW !== 'undefined' ? VOCAB_RAW : []).forEach(t => {
+  const meta = { n: t.n, title: t.title, secs: [], items: [] };
+  let sec = null, i = 0;
+  t.text.split('\n').forEach(raw => {
+    const line = raw.trim(); if (!line) return;
+    if (line.startsWith('#')) { sec = { name: line.slice(1).trim(), items: [] }; meta.secs.push(sec); return; }
+    const k = line.indexOf(' = '); if (k < 0) return;
+    let de = line.slice(k + 3), note = '';
+    const p = de.indexOf(' | '); if (p >= 0) { note = de.slice(p + 3).trim(); de = de.slice(0, p); }
+    if (!sec) { sec = { name: 'Allgemein', items: [] }; meta.secs.push(sec); }
+    const it = { id: t.n + ':' + (i++), t: t.n, sec: sec.name, fr: line.slice(0, k).trim(), de: de.trim(), note };
+    sec.items.push(it); meta.items.push(it); VOCAB.push(it);
+  });
+  VOCAB_T.push(meta);
+});
+
+/* Leitner: Box 0–5, nächste Wiederholung nach 0/1/3/7/14/30 Tagen. Ab Box 3 gilt ein Wort als gelernt. */
+const BOX_DAYS = [0, 1, 3, 7, 14, 30];
+const dayNum = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); };
+const vbox = id => (state.vocab[id] ? state.vocab[id].b : -1);
+const vLearned = id => vbox(id) >= 3;
+const vDue = id => !!state.vocab[id] && state.vocab[id].d <= dayNum();
+function vocabGrade(id, ok) {
+  const s = state.vocab[id] || { b: 0, d: 0, w: 0 };
+  if (ok) s.b = Math.min(5, s.b + 1); else { s.b = 0; s.w = (s.w || 0) + 1; }
+  s.d = dayNum() + BOX_DAYS[s.b];
+  state.vocab[id] = s;
+}
+
+/* Antwort prüfen (deutsch: grosszügig, französisch: Artikel und Akzente zählen) */
+const vnorm = s => cleanBasic(String(s)).replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/\.\.\.|…/g, ' ').replace(/[!?.,;:]+$/g, '').replace(/\s+/g, ' ').trim();
+const DE_ART = /^(der|die|das|den|dem|des|ein|eine|einen|sich) /;
+/* trennt an Kommas/Schrägstrichen – aber nicht innerhalb von Klammern: "spielen (Sport, Spiele)" bleibt ganz */
+function splitTop(str, seps) {
+  const out = []; let depth = 0, cur = '';
+  for (const ch of String(str)) {
+    if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1);
+    if (!depth && seps.includes(ch)) { out.push(cur); cur = ''; } else cur += ch;
+  }
+  out.push(cur);
+  return out.map(x => x.trim()).filter(Boolean);
+}
+function vocEval(input, q) {
+  const a = vnorm(input);
+  if (q.dir === 'fd') {
+    // Deutsch: jedes Synonym zählt, Artikel egal, Klammerteile optional, Umlaute grosszügig
+    const vs = new Set();
+    const add = p => {
+      [p, ...expand(p)].forEach(x => {
+        const y = stripAcc(vnorm(x));
+        [y, y.replace(DE_ART, ''), y.replace(/\s*\([^)]*\)\s*/g, ' ').trim(), y.replace(/[()]/g, '')]
+          .forEach(z => { if (z && !/^(der|die|das|den|dem|des)$/.test(z)) vs.add(z); });
+      });
+    };
+    add(q.form);
+    (q.alts || []).forEach(alt => { add(alt); splitTop(alt, ',;').forEach(add); });   // z.B. „der/die Bekannte“ als Ganzes
+    splitTop(q.form, '/').forEach(alt => { add(alt); splitTop(alt, ',;').forEach(add); splitTop(alt, ',;/').forEach(add); alt.split(' oder ').forEach(add); });
+    const has = s => { const y = stripAcc(vnorm(s)); return vs.has(y) || vs.has(y.replace(DE_ART, '')); };
+    return { ok: has(input) || splitTop(input, ',;').every(has) || splitTop(input, ',;/').every(has) };
+  }
+  // Französisch: Artikel und Akzente zählen
+  const vs = [vnorm(q.form), vnorm(q.form.replace(/\([^)]*\)/g, ''))];
+  splitAlt(q.form).forEach(alt => {
+    expand(alt).forEach(x => vs.push(vnorm(x)));
+    const first = alt.split(', ')[0];                    // bei Adjektiven reicht die männliche Form
+    if (first !== alt) expand(first).forEach(x => vs.push(vnorm(x)));
+  });
+  const parts = a.includes('/') ? a.split('/').map(x => x.trim()).filter(Boolean) : [a];   // „le frigidaire / le frigo“
+  if (vs.includes(a) || parts.every(p => vs.includes(p))) return { ok: true };
+  if (vs.some(x => stripAcc(x) === stripAcc(a))) {
+    return state.settings.ignoreAccents ? { ok: true, note: 'Achte auf die Akzente!' } : { ok: false, note: 'Fast! Nur die Akzente stimmen nicht.' };
+  }
+  const ART = /^(le |la |l'|les |un |une )/;
+  if (vs.some(x => ART.test(x) && x.replace(ART, '') === a)) return { ok: false, note: 'Fast! Der Artikel fehlt – lerne ihn immer mit.' };
+  return { ok: false };
+}
+function vocChoices(q) {
+  const key = q.dir === 'df' ? 'fr' : 'de';
+  const okFor = x => !(q.alts || [q.form]).includes(x[key]) && x[q.dir === 'df' ? 'de' : 'fr'] !== q.q;
+  const same = VOCAB.filter(x => x.t === q.it.t && okFor(x));
+  const pool = shuffle(same.length >= 6 ? same : VOCAB.filter(okFor));
+  const out = [];
+  for (const x of pool) { if (out.length >= 3) break; if (!out.includes(x[key])) out.push(x[key]); }
+  return shuffle([q.form, ...out]);
+}
+
+/* Fragen bauen: fällige zuerst, dann neue, dann unsichere, gelernte zuletzt */
+function vocQ(it, dir) {
+  const d = dir === 'mix' ? (Math.random() < 0.5 ? 'fd' : 'df') : dir;
+  const pk = d === 'df' ? 'de' : 'fr', tk = d === 'df' ? 'fr' : 'de';
+  // gleiche Abfrage, mehrere richtige Übersetzungen (z.B. die Sache → la chose / l'objet): alle zählen
+  const alts = [...new Set(VOCAB.filter(x => x[pk] === it[pk]).map(x => x[tk]))];
+  return { kind: 'voc', it, id: it.id, dir: d, inf: it.id + d, tense: 'voc', pi: 0, q: it[pk], form: alts.join(' / '), alts };
+}
+function vocPick(pool, count) {
+  const score = it => { const s = state.vocab[it.id]; if (!s) return 1; if (s.d <= dayNum()) return 0; return 2 + s.b; };
+  const sorted = shuffle(pool).sort((a, b) => score(a) - score(b));
+  return count === 'all' ? sorted : sorted.slice(0, count);
+}
+function startVocab(pool, mode, dir, count, label) {
+  const items = vocPick(pool, count).map(it => vocQ(it, dir));
+  if (!items.length) return toast('Keine Wörter ausgewählt.');
+  startSession(items, mode, { vocab: true, label, again: () => startVocab(pool, mode, dir, count, label) });
+}
+
+/* ---------- Übersicht ---------- */
+let vocView = { t: null, secs: null, dir: 'fd', count: 20, search: '', showList: false };
+function renderVocab() { if (vocView.t) renderVocTranche(); else renderVocHome(); }
+
+function renderVocHome() {
+  const learned = VOCAB.filter(it => vLearned(it.id)).length;
+  const due = VOCAB.filter(it => vDue(it.id));
+  const hard = VOCAB.filter(it => state.vocab[it.id] && state.vocab[it.id].w > 0 && state.vocab[it.id].b < 3);
+  const pct = VOCAB.length ? Math.round(learned / VOCAB.length * 100) : 0;
+  $('#screen-vocab').innerHTML = `
+    <div class="card hero">
+      <div class="hero-owl">${owlSVG(due.length ? 'think' : 'happy')}</div>
+      <div class="hero-text">
+        <div class="bubble">${learned ? `Du kannst schon <b>${learned}</b> von ${VOCAB.length} Wörtern.` : `Hier sind alle <b>${VOCAB.length}</b> Wörter aus dem Vocabulaire EMP. Wähle eine Tranche!`}
+          ${due.length ? ` <b>${due.length}</b> Wörter sind heute zum Wiederholen fällig.` : ''}</div>
+        <div class="goal"><div class="goal-label"><b>Gelernt</b><span>${pct}%</span></div><div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div></div>
+        <div class="voc-actions">
+          <button class="btn btn-primary btn-sm" id="vocDue" ${due.length ? '' : 'disabled'}>🔁 Fällige wiederholen (${due.length})</button>
+          <button class="btn btn-gold btn-sm" id="vocHard" ${hard.length ? '' : 'disabled'}>🎯 Schwierige Wörter (${hard.length})</button>
+        </div>
+      </div>
+    </div>
+    <input class="search" id="vocSearch" placeholder="🔍 Wort suchen – französisch oder deutsch…" value="${esc(vocView.search)}">
+    <div id="vocResults"></div>
+    <div class="tranches">${VOCAB_T.map(t => {
+      const n = t.items.length, l = t.items.filter(it => vLearned(it.id)).length, d = t.items.filter(it => vDue(it.id)).length;
+      return `<button class="tr-card" data-tr="${t.n}">
+        <span class="tr-num">${t.n}</span>
+        <span class="tr-txt"><b>Tranche ${t.n}</b><small>${esc(t.title)}</small>
+          <span class="bar mini"><span class="bar-fill" style="width:${n ? l / n * 100 : 0}%"></span></span>
+          <small class="tr-meta">${l}/${n} gelernt${d ? ` · <span class="due">${d} fällig</span>` : ''}</small></span>
+      </button>`;
+    }).join('')}</div>`;
+  renderVocResults();
+}
+function renderVocResults() {
+  const box = $('#vocResults'); if (!box) return;
+  const q = searchNorm(vocView.search);
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const res = VOCAB.filter(it => searchNorm(it.fr).includes(q) || searchNorm(it.de).includes(q)).slice(0, 40);
+  box.innerHTML = `<div class="card">${res.length ? res.map(vocRow).join('') : '<p class="hint">Nichts gefunden.</p>'}</div>`;
+}
+function vocRow(it) {
+  const b = vbox(it.id);
+  return `<div class="wrow"><button class="speak" data-say="${esc(splitAlt(it.fr)[0])}" title="Anhören">🔊</button>
+    <span class="vr-fr"><b>${esc(it.fr)}</b>${it.note ? `<small>${esc(it.note)}</small>` : ''}</span>
+    <span class="vr-de">${esc(it.de)}</span>
+    <span class="vr-box" title="${b < 0 ? 'noch nicht geübt' : 'Box ' + b + ' von 5'}">${[1, 2, 3, 4, 5].map(i => `<i class="${b >= i ? 'on' : ''}"></i>`).join('')}</span>
+    <span class="vr-t">T${it.t}</span></div>`;
+}
+
+function renderVocTranche() {
+  const t = VOCAB_T.find(x => x.n === vocView.t);
+  if (!vocView.secs) vocView.secs = t.secs.map(s => s.name);
+  const sel = t.secs.filter(s => vocView.secs.includes(s.name));
+  const pool = sel.flatMap(s => s.items);
+  const learned = pool.filter(it => vLearned(it.id)).length;
+  const chip = (attr, on, label) => `<button class="chip ${on ? 'on' : ''}" ${attr}>${label}</button>`;
+  $('#screen-vocab').innerHTML = `
+    <div class="card-head"><button class="link" data-vback>← Alle Tranches</button></div>
+    <h1 class="set-title">Tranche ${t.n}</h1>
+    <p class="hint">${esc(t.title)} · ${t.items.length} Wörter</p>
+    <div class="card">
+      <h3>Themen <span class="count">${pool.length} Wörter · ${learned} gelernt</span></h3>
+      <div class="chips small">${chip('data-vsecall', sel.length === t.secs.length, 'Alle')}${t.secs.map(s => chip(`data-vsec="${esc(s.name)}"`, vocView.secs.includes(s.name), `${esc(s.name)} <small>${s.items.length}</small>`)).join('')}</div>
+      <h3>Richtung</h3>
+      <div class="chips small">${[['fd', 'Französisch → Deutsch'], ['df', 'Deutsch → Französisch'], ['mix', 'Gemischt']].map(([k, l]) => chip(`data-vdir="${k}"`, vocView.dir === k, l)).join('')}</div>
+      <h3>Wörter pro Runde</h3>
+      <div class="chips small">${[[10, '10'], [20, '20'], [50, '50'], ['all', 'Alle']].map(([k, l]) => chip(`data-vcount="${k}"`, String(vocView.count) === String(k), l)).join('')}</div>
+      <p class="hint">Zuerst kommen fällige und neue Wörter, gelernte zuletzt. Falsche Wörter kommen in der Runde nochmal.</p>
+    </div>
+    <div class="modes">
+      <div class="mode-card main"><div class="mode-ico">🃏</div><b>Karteikarten</b><small>Umdrehen und selbst bewerten</small><button class="btn btn-sm btn-primary" data-vstart="card">Start</button></div>
+      <div class="mode-card"><div class="mode-ico">🔘</div><b>Multiple Choice</b><small>Die richtige Übersetzung wählen</small><button class="btn btn-sm btn-primary" data-vstart="mc">Start</button></div>
+      <div class="mode-card"><div class="mode-ico">✍️</div><b>Schreiben</b><small>Übersetzung eintippen</small><button class="btn btn-sm btn-primary" data-vstart="type">Start</button></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Wortliste</h2><button class="btn btn-sm" data-vlist>${vocView.showList ? 'Ausblenden' : 'Anzeigen'}</button></div>
+      ${vocView.showList ? sel.map(s => `<h3>${esc(s.name)}</h3>${s.items.map(vocRow).join('')}`).join('') : '<p class="hint">Alle Wörter dieser Tranche mit deinem Lernstand (● = Box im Karteikasten).</p>'}
+    </div>`;
+}
+
+$('#screen-vocab').addEventListener('input', e => {
+  if (e.target.id === 'vocSearch') { vocView.search = e.target.value; renderVocResults(); }
+});
+$('#screen-vocab').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const t = vocView.t && VOCAB_T.find(x => x.n === vocView.t);
+  if (b.dataset.say) return speak(b.dataset.say);
+  if (b.dataset.tr) { vocView = { ...vocView, t: +b.dataset.tr, secs: null, showList: false }; renderVocab(); window.scrollTo(0, 0); }
+  else if (b.dataset.vback !== undefined) { vocView.t = null; renderVocab(); }
+  else if (b.id === 'vocDue') startVocab(VOCAB.filter(it => vDue(it.id)), 'card', vocView.dir, 'all', 'Fällige Wörter');
+  else if (b.id === 'vocHard') startVocab(VOCAB.filter(it => state.vocab[it.id] && state.vocab[it.id].w > 0 && state.vocab[it.id].b < 3), 'card', vocView.dir, 50, 'Schwierige Wörter');
+  else if (b.dataset.vsecall !== undefined) { vocView.secs = vocView.secs.length === t.secs.length ? [] : t.secs.map(s => s.name); renderVocab(); }
+  else if (b.dataset.vsec) { toggleIn(vocView.secs, b.dataset.vsec); renderVocab(); }
+  else if (b.dataset.vdir) { vocView.dir = b.dataset.vdir; renderVocab(); }
+  else if (b.dataset.vcount) { vocView.count = b.dataset.vcount === 'all' ? 'all' : +b.dataset.vcount; renderVocab(); }
+  else if (b.dataset.vlist !== undefined) { vocView.showList = !vocView.showList; renderVocab(); }
+  else if (b.dataset.vstart) {
+    const pool = t.secs.filter(s => vocView.secs.includes(s.name)).flatMap(s => s.items);
+    startVocab(pool, b.dataset.vstart, vocView.dir, vocView.count, `Tranche ${t.n}`);
+  }
+});
 
 /* =========================================================
    VERBEN VERWALTEN
@@ -1152,7 +1455,7 @@ function openBulk() {
     <div class="set-checks">${setCheckboxes(['stem'])}</div>
     <div class="modal-actions"><button class="btn" data-close>Abbrechen</button><button class="btn btn-primary" id="bulkSave">Hinzufügen</button></div>`,
   c => {
-    setTimeout(() => $('#bulkText', c).focus(), 30);
+    setTimeout(() => { const t = $("#bulkText", c); if (t) t.focus(); }, 30);
     $('#bulkSave', c).onclick = () => {
       const sets = $$('input[data-inset]', c).filter(x => x.checked).map(x => x.dataset.inset);
       let added = 0, moved = 0;
@@ -1239,6 +1542,7 @@ function renderStats() {
       <div class="tile orange"><div class="tile-h">Tage-Serie</div><div class="tile-v">🔥 ${streak}</div></div>
       <div class="tile gold"><div class="tile-h">Gesamt-XP</div><div class="tile-v">⚡ ${s.xp}</div></div>
       <div class="tile"><div class="tile-h">Antworten</div><div class="tile-v">✏️ ${s.answered}</div></div>
+      <div class="tile"><div class="tile-h">Wörter gelernt</div><div class="tile-v">🃏 ${VOCAB.filter(it => vLearned(it.id)).length}</div></div>
       <div class="tile purple"><div class="tile-h">Genauigkeit</div><div class="tile-v">🎯 ${acc}%</div></div>
     </div>
     <div class="card">

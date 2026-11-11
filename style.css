@@ -635,3 +635,58 @@ body, .topbar, .card, .play-foot { transition: background-color .25s, border-col
   .salto .owl, .owl-fire, .owl-sleep, .owl-zzz text, .prompt-owl.typing .owl, .combo-badge { animation: none !important; }
   .owl-zzz text { opacity: 1; }
 }
+
+/* =========================================================
+   Wörter (Vocabulaire EMP)
+   ========================================================= */
+.voc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.tranches { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 16px; }
+.tr-card {
+  display: flex; gap: 12px; align-items: flex-start; text-align: left; padding: 14px;
+  border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 16px; background: var(--surface); color: var(--text); font: inherit;
+}
+.tr-card:hover { background: var(--soft); border-color: var(--blue-b); }
+.tr-card:active { border-bottom-width: 2px; transform: translateY(2px); }
+.tr-num {
+  flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--blue); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; box-shadow: 0 3px 0 var(--blue-d);
+}
+.tr-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.tr-txt b { color: var(--head); font-weight: 900; }
+.tr-txt small { color: var(--muted); font-weight: 700; font-size: 12.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tr-txt .tr-meta { -webkit-line-clamp: 1; }
+.tr-meta .due { color: var(--orange); }
+.bar.mini { height: 8px; }
+.bar.mini .bar-fill::after { display: none; }
+.wrow { display: grid; grid-template-columns: 34px minmax(0, 1.2fr) minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--soft); }
+.wrow:last-child { border-bottom: 0; }
+.vr-fr b { color: var(--head); }
+.vr-fr small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
+.vr-de { color: var(--text); font-weight: 600; }
+.vr-box { display: flex; gap: 3px; }
+.vr-box i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.vr-box i.on { background: var(--blue); }
+.vr-t { font-size: 11px; font-weight: 900; color: var(--faint); }
+.voc-word { font-size: 28px; font-weight: 900; color: var(--head); }
+.flash { border: 2px dashed var(--line); border-radius: 18px; padding: 28px 16px; text-align: center; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+.flash-hint { color: var(--muted); font-weight: 700; }
+.flash-back b { display: block; font-size: 26px; color: var(--blue-d); font-weight: 900; animation: owlPop .3s ease; }
+.flash-back small { display: block; margin-top: 6px; color: var(--muted); font-weight: 700; }
+.play-foot .btn small { font-weight: 700; opacity: .7; }
+@media (max-width: 680px) {
+  .wrow { grid-template-columns: 30px 1fr; }
+  .vr-de { grid-column: 2; }
+  .vr-box, .vr-t { display: none; }
+  .voc-word { font-size: 22px; }
+}
+
+/* Kopfzeile auf schmalen Handys: 4 Tabs + HUD + Hell/Dunkel müssen Platz haben */
+@media (max-width: 480px) {
+  .topbar { gap: 4px; padding: 8px 8px; }
+  .brand-owl svg { width: 34px; height: 34px; }
+  .tabs { gap: 2px; }
+  .tab { padding: 6px 7px; }
+  .tab-ico { font-size: 18px; }
+  .hud { gap: 6px; font-size: 13px; }
+  .theme-btn { width: 32px; height: 32px; font-size: 16px; flex: none; }
+}

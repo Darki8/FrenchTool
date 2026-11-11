@@ -228,11 +228,120 @@ const REFLEXIVE_VERBS = [
   ['se rappeler', 'sich erinnern'], ['s\'ennuyer', 'sich langweilen'], ['se lever', 'aufstehen'],
 ].map(([inf, de]) => ({ inf, de, aux: 'être', refl: true }));
 
-const BUILTIN_VERBS = [
-  ...IRREGULAR_VERBS.map(v => ({ aux: 'avoir', ...v, irr: true })),
-  ...REGULAR_VERBS,
-  ...REFLEXIVE_VERBS,
+/* ---------- Verben aus dem Dossier & dem Wortschatz (Vocabulaire EMP) ---------- */
+const IRREGULAR_EXTRA = [
+  { inf: 'découvrir', de: 'entdecken', pp: 'découvert',
+    present: ['découvre', 'découvres', 'découvre', 'découvrons', 'découvrez', 'découvrent'] },
+  { inf: 'surprendre', de: 'überraschen', pp: 'surpris',
+    present: ['surprends', 'surprends', 'surprend', 'surprenons', 'surprenez', 'surprennent'] },
+  { inf: 'transmettre', de: 'senden, übertragen', pp: 'transmis',
+    present: ['transmets', 'transmets', 'transmet', 'transmettons', 'transmettez', 'transmettent'] },
+  { inf: 'remettre', de: 'zurücklegen, abgeben', pp: 'remis',
+    present: ['remets', 'remets', 'remet', 'remettons', 'remettez', 'remettent'] },
+  { inf: 'interdire', de: 'verbieten', pp: 'interdit',
+    present: ['interdis', 'interdis', 'interdit', 'interdisons', 'interdisez', 'interdisent'] },
+  { inf: 'convenir', de: 'vereinbaren', pp: 'convenu', fut: 'conviendr',
+    present: ['conviens', 'conviens', 'convient', 'convenons', 'convenez', 'conviennent'] },
+  { inf: 'cuire', de: 'kochen (Zubereitungsart)', pp: 'cuit',
+    present: ['cuis', 'cuis', 'cuit', 'cuisons', 'cuisez', 'cuisent'] },
+  { inf: 'bouillir', de: 'kochen (Flüssigkeit)', pp: 'bouilli',
+    present: ['bous', 'bous', 'bout', 'bouillons', 'bouillez', 'bouillent'] },
+  { inf: 'se souvenir', de: 'sich erinnern', refl: true, aux: 'être', pp: 'souvenu', fut: 'souviendr',
+    present: ['souviens', 'souviens', 'souvient', 'souvenons', 'souvenez', 'souviennent'] },
+  { inf: 'se rendormir', de: 'wieder einschlafen', refl: true, aux: 'être', pp: 'rendormi',
+    present: ['rendors', 'rendors', 'rendort', 'rendormons', 'rendormez', 'rendorment'] },
+  { inf: 'se plaindre', de: 'sich beklagen', refl: true, aux: 'être', pp: 'plaint',
+    present: ['plains', 'plains', 'plaint', 'plaignons', 'plaignez', 'plaignent'] },
+  { inf: 'se sentir', de: 'sich fühlen', refl: true, aux: 'être', pp: 'senti',
+    present: ['sens', 'sens', 'sent', 'sentons', 'sentez', 'sentent'] },
+  { inf: 'se servir', de: 'sich bedienen', refl: true, aux: 'être', pp: 'servi',
+    present: ['sers', 'sers', 'sert', 'servons', 'servez', 'servent'] },
+  { inf: 'se taire', de: 'schweigen', refl: true, aux: 'être', pp: 'tu',
+    present: ['tais', 'tais', 'tait', 'taisons', 'taisez', 'taisent'] },
 ];
+const REGULAR_EXTRA = [
+  ['tousser', 'husten'], ['pleurer', 'weinen'], ['soulever', 'hochheben'], ['épeler', 'buchstabieren'],
+  ['tromper', 'täuschen'], ['appuyer', 'drücken'], ['quitter', 'verlassen'], ['terminer', 'beenden'],
+  ['casser', 'zerbrechen'], ['utiliser', 'benutzen'], ['tirer', 'ziehen, schiessen'], ['pousser', 'drücken, schieben'],
+  ['tourner', 'drehen'], ['garder', 'behalten'], ['apporter', 'mitbringen'], ['emmener', 'mitnehmen'],
+  ['accepter', 'annehmen'], ['prêter', '(ver)leihen'], ['emprunter', '(aus)leihen'], ['raconter', 'erzählen'],
+  ['expliquer', 'erklären'], ['souhaiter', 'wünschen'], ['proposer', 'vorschlagen'], ['critiquer', 'kritisieren'],
+  ['refuser', 'ablehnen'], ['sembler', 'scheinen'], ['remarquer', 'bemerken'], ['adorer', 'sehr gerne haben'],
+  ['regretter', 'bedauern'], ['toucher', 'berühren'], ['compter', 'zählen'], ['souffler', 'wehen'],
+  ['brûler', 'brennen'], ['recycler', 'recyceln'], ['rêver', 'träumen'], ['décider', 'entscheiden'],
+  ['aider', 'helfen'], ['respecter', 'respektieren'], ['réveiller', 'wecken'], ['tester', 'testen'],
+  ['noter', 'notieren'], ['rater', 'verpassen, nicht bestehen'], ['éduquer', 'erziehen'], ['inviter', 'einladen'],
+  ['rencontrer', 'treffen'], ['détester', 'hassen'], ['embrasser', 'küssen'], ['louer', 'mieten'],
+  ['déménager', 'umziehen'], ['allumer', 'anmachen'], ['chauffer', 'heizen'], ['sonner', 'klingeln'],
+  ['repasser', 'bügeln'], ['sécher', 'trocknen'], ['brosser', 'bürsten'], ['attraper', 'fangen'],
+  ['skier', 'Ski fahren'], ['gagner', 'gewinnen, verdienen'], ['coûter', 'kosten'], ['dépenser', 'ausgeben'],
+  ['échanger', 'umtauschen'], ['fêter', 'feiern'], ['féliciter', 'gratulieren'], ['durer', 'dauern'],
+  ['arrêter', 'aufhören, festnehmen'], ['réserver', 'reservieren'], ['annuler', 'stornieren'], ['visiter', 'besichtigen'],
+  ['manquer', 'verpassen'], ['voler', 'fliegen, stehlen'], ['décoller', 'starten'], ['atterrir', 'landen'],
+  ['reculer', 'rückwärts fahren'], ['traverser', 'überqueren'], ['garer', 'parken'], ['freiner', 'bremsen'],
+  ['consommer', 'verbrauchen'], ['téléphoner', 'telefonieren'], ['composer', 'wählen'], ['rappeler', 'zurückrufen'],
+  ['surfer', 'surfen'], ['télécharger', 'herunterladen'], ['imprimer', 'drucken'], ['cliquer', 'klicken'],
+  ['copier', 'kopieren'], ['installer', 'installieren'], ['engager', 'einstellen'], ['licencier', 'entlassen'],
+  ['démissionner', 'kündigen'], ['réparer', 'reparieren'], ['exporter', 'exportieren'], ['importer', 'importieren'],
+  ['économiser', 'sparen'], ['augmenter', 'erhöhen'], ['baisser', 'senken'], ['planter', 'pflanzen'],
+  ['cultiver', 'anbauen'], ['récolter', 'ernten'], ['arroser', 'giessen'], ['fleurir', 'blühen'],
+  ['fonctionner', 'funktionieren'], ['régner', 'regieren (König)'], ['prier', 'beten'], ['gouverner', 'regieren'],
+  ['influencer', 'beeinflussen'], ['opprimer', 'unterdrücken'], ['occuper', 'besetzen'], ['libérer', 'befreien'],
+  ['trahir', 'verraten'], ['signer', 'unterschreiben'], ['accuser', 'anklagen'], ['tuer', 'töten'],
+  ['assassiner', 'ermorden'], ['nourrir', 'ernähren'], ['sauter', 'springen'], ['marcher', '(zu Fuss) gehen'],
+  ['abandonner', 'aufgeben'], ['séparer', 'trennen'], ['retrouver', 'wiederfinden'], ['laisser', 'lassen'],
+  ['saigner', 'bluten'], ['transpirer', 'schwitzen'], ['trembler', 'zittern'], ['fumer', 'rauchen'],
+  ['respirer', 'atmen'], ['opérer', 'operieren'], ['vacciner', 'impfen'], ['examiner', 'untersuchen'],
+  ['traiter', 'behandeln'], ['soigner', 'pflegen'], ['sauver', 'retten'], ['enterrer', 'beerdigen'],
+  ['exercer', 'ausüben'], ['protester', 'protestieren'], ['manifester', 'demonstrieren'], ['lutter', 'kämpfen'],
+  ['améliorer', 'verbessern'], ['exprimer', 'ausdrücken'], ['excuser', 'entschuldigen'], ['conseiller', 'raten, beraten'],
+  ['recommander', 'empfehlen'], ['supposer', 'vermuten'], ['douter', 'bezweifeln'], ['participer', 'teilnehmen'],
+  ['contacter', 'kontaktieren'], ['bricoler', 'basteln'], ['exposer', 'ausstellen'], ['couper', 'schneiden'],
+  ['cuisiner', 'kochen'], ['déjeuner', 'zu Mittag essen'], ['dîner', 'zu Abend essen'], ['amuser', 'Spass machen'],
+  ['informer', 'informieren'], ['programmer', 'programmieren'], ['démarrer', 'hochfahren'], ['enregistrer', 'aufnehmen'],
+  ['embaucher', 'anstellen'], ['exister', 'existieren'], ['provoquer', 'auslösen'], ['passer', 'vorbeigehen, verbringen'],
+  ['poser', 'stellen, legen'], ['regarder', 'anschauen'], ['marcher', 'gehen'], ['rentrer', 'heimkommen', 'être'],
+  ['chercher', 'suchen'], ['étudier', 'lernen'], ['oublier', 'vergessen'], ['danser', 'tanzen'],
+  ['réfléchir', 'nachdenken'], ['vieillir', 'älter werden'], ['grandir', 'wachsen'], ['guérir', 'heilen'],
+  ['se réunir', 'sich versammeln', 'refl'],
+].map(([inf, de, aux]) => aux === 'refl' ? { inf, de, aux: 'être', refl: true } : ({ inf, de, aux: aux || 'avoir' }));
+const REFLEXIVE_EXTRA = [
+  ["s'efforcer", 'sich bemühen'], ['se coucher', 'ins Bett gehen'], ['se moquer', 'sich lustig machen'],
+  ["s'inquiéter", 'sich Sorgen machen'], ["s'appuyer", 'sich anlehnen'], ["s'amuser", 'sich amüsieren'],
+  ['se laver', 'sich waschen'], ['se reposer', 'sich ausruhen'], ['se réveiller', 'aufwachen'],
+  ['se dépêcher', 'sich beeilen'], ["s'arrêter", 'anhalten'], ["s'habiller", 'sich anziehen'],
+  ['se changer', 'sich umziehen'], ['se coiffer', 'sich frisieren'], ['se raser', 'sich rasieren'],
+  ["s'exercer", 'üben'], ["s'intéresser", 'sich interessieren'], ["s'occuper", 'sich kümmern'],
+  ['se marier', 'heiraten'], ['se séparer', 'sich trennen'], ['se disputer', 'sich streiten'],
+  ['se fâcher', 'wütend werden'], ["s'énerver", 'sich aufregen'], ["s'excuser", 'sich entschuldigen'],
+  ["s'exprimer", 'sich ausdrücken'], ['se demander', 'sich fragen'], ['se trouver', 'sich befinden'],
+  ['se garer', 'parken'], ["s'entraîner", 'trainieren'], ["s'habituer", 'sich gewöhnen'],
+  ['se blesser', 'sich verletzen'], ['se casser', 'sich brechen'], ['se brûler', 'sich verbrennen'],
+  ['se développer', 'sich entwickeln'], ['se comporter', 'sich verhalten'], ['se déshabiller', 'sich ausziehen'],
+  ["s'essuyer", 'sich abtrocknen'], ['se tromper', 'sich irren'], ['se calmer', 'sich beruhigen'],
+  ['se nourrir', 'sich ernähren'], ['se ressembler', 'sich ähnlich sein'], ['se droguer', 'Drogen nehmen'],
+  ['se qualifier', 'sich qualifizieren'], ['se moquer', 'sich lustig machen'],
+].map(([inf, de]) => ({ inf, de, aux: 'être', refl: true }));
+// unpersönliche regelmässige Verben
+const IMPERSONAL_EXTRA = [{ inf: 'neiger', de: 'schneien', aux: 'avoir', impers: true }];
+
+/* Alle eingebauten Verben – doppelte Einträge werden ignoriert (der erste gewinnt) */
+const BUILTIN_VERBS = (() => {
+  const m = new Map();
+  [
+    ...IRREGULAR_VERBS.map(v => ({ aux: 'avoir', ...v, irr: true })),
+    ...IRREGULAR_EXTRA.map(v => ({ aux: 'avoir', ...v, irr: true })),
+    ...REGULAR_VERBS, ...REFLEXIVE_VERBS, ...REGULAR_EXTRA, ...REFLEXIVE_EXTRA, ...IMPERSONAL_EXTRA,
+  ].forEach(v => { if (!m.has(v.inf)) m.set(v.inf, v); });
+  return [...m.values()];
+})();
+const VOC_VERBS = [...new Set([...IRREGULAR_EXTRA, ...REGULAR_EXTRA, ...REFLEXIVE_EXTRA, ...IMPERSONAL_EXTRA].map(v => v.inf))];
+const IMPER_VERBS = ['entrer', 'nager', 'lancer', 'rappeler', 'se lever', 'exagérer', 'nettoyer', 'finir', 'partir',
+  'ouvrir', 'perdre', 'réduire', 'éteindre', 'connaître', 'recevoir', 'avoir', 'être', 'aller', 'savoir', 'vouloir',
+  'sortir', 'porter', 'venir', 'prendre', 'rire', 'crier', 'dormir', 'rompre', 'tromper', 'voir', 'envoyer',
+  'croire', 'boire', 'lire', 'dire', 'lever', 'se laver', 'jeter', "s'appuyer", 'choisir', 'attendre', 'parler',
+  'se calmer', 'pleurer', 'faire', 'se taire', 'garder', 'remplir', 'oublier', 'écrire', 'se dépêcher', 'se garer',
+  'fumer', 'traverser', 'manger', 'commencer', "s'asseoir", 'acheter', 'appeler', 'payer', 'donner', 'venir'];
 
 /* Verben aus dem Heft, nach Blättern sortiert */
 const HEFT_ER = ['parler', 'aimer', 'bavarder', 'chercher', 'donner', 'entrer', 'fermer', 'grimper',
@@ -270,7 +379,7 @@ const HEFT_FUT = ['parler', 'finir', 'partir', 'attendre', 'ouvrir', 'jeter', 'a
   'devoir', 'pouvoir', 'savoir', 'vouloir', 'courir', 'mourir', "s'asseoir", 'apercevoir',
   'décevoir', 'recevoir', 'pleuvoir', 'falloir', 'valoir', 'écrire', 'manger', 'prendre', 'sortir'];
 const HEFT_ALL = [...new Set([...HEFT_ER, ...HEFT_IR, ...HEFT_RE, ...HEFT_OIR, ...HEFT_PC, ...HEFT_FUT, 'crier'])];
-const HEFT_TENSES = ['present', 'imparfait', 'passe', 'pqp', 'futur', 'futproche', 'futant', 'conditionnel', 'condpasse'];
+const HEFT_TENSES = ['present', 'imperatif', 'imparfait', 'passe', 'pqp', 'futur', 'futproche', 'futant', 'conditionnel', 'condpasse'];
 
 /* =========================================================
    Übungs-Sets (wie bei conjuguemos)
@@ -293,15 +402,17 @@ const VERB_SETS = [
   { id: 'h-ir', ico: '🌿', title: 'Verbes en -ir (présent)', de: 'Heft: -ir, -mir/-tir/-vir, cocos, Einzelverben', tenses: ['present'], verbs: HEFT_IR },
   { id: 'h-re', ico: '📖', title: 'Verbes en -re (présent)', de: 'Heft: -re, -uire, -indre, -aître, Einzelverben', tenses: ['present'], verbs: HEFT_RE },
   { id: 'h-oir', ico: '👁️', title: 'Verbes en -oir, avoir, être, aller', de: 'Heft S. 11: -oir, 3 unregelmässige, pronominaux', tenses: ['present'], verbs: HEFT_OIR },
+  { id: 'h-imper', ico: '📣', title: "L'impératif", de: 'Dossier 1.3: Befehlsform (tu, nous, vous)', tenses: ['imperatif'], verbs: IMPER_VERBS },
   { id: 'h-imp', ico: '🕰️', title: "L'imparfait", de: 'Heft 1.4: Stamm von « nous » + -ais …', tenses: ['imparfait'], verbs: HEFT_ALL },
   { id: 'h-pc', ico: '🏥', title: 'Passé composé & plus-que-parfait', de: "Heft 1.5 & 2.1: avoir/être, verbes de l'hôpital, participes", tenses: ['passe', 'pqp'], verbs: HEFT_PC },
   { id: 'h-fut', ico: '🚀', title: 'Futur & conditionnel', de: 'Heft 2.3 & 2.4: futur proche/simple/antérieur, conditionnel', tenses: ['futproche', 'futur', 'futant', 'conditionnel', 'condpasse'], verbs: HEFT_FUT },
+  { id: 'voc', ico: '🗂️', title: 'Verben aus dem Wortschatz', de: 'Alle neuen Verben aus dem Vocabulaire EMP', tenses: ['present', 'imperatif', 'passe', 'imparfait', 'futur'], verbs: VOC_VERBS },
   { id: 'h-all', ico: '🎓', title: 'Mein Heft – alles', de: 'Alle Verben & Zeitformen von den Blättern', tenses: HEFT_TENSES, verbs: HEFT_ALL },
   {
     id: 'all', ico: '📚',
     title: 'Toutes les conjugaisons',
     de: 'Alle Verben & alle Zeitformen',
-    tenses: ['present', 'passe', 'imparfait', 'pqp', 'futur', 'futproche', 'futant', 'conditionnel', 'condpasse', 'subjonctif'],
+    tenses: ['present', 'imperatif', 'passe', 'imparfait', 'pqp', 'futur', 'futproche', 'futant', 'conditionnel', 'condpasse', 'subjonctif'],
     verbs: null,
   },
 ];

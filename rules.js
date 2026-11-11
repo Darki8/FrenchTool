@@ -106,6 +106,7 @@ function ruleTips(v, tense, pi) {
     if (tense === 'imparfait') return imparfaitTips(v);
     if (COMPOUND_AUX[tense]) return compoundTips(v, tense);
     if (tense === 'futur' || tense === 'conditionnel') return futurTips(v, tense);
+    if (tense === 'imperatif') return imperatifTips(v, pi);
     if (tense === 'futproche') return ['Futur proche = aller im présent (vais, vas, va, allons, allez, vont) + Infinitiv.']
       .concat(v.refl ? ['Das Reflexivpronomen steht vor dem Infinitiv: je vais me préparer.'] : []);
     if (tense === 'subjonctif') return [v.subj ? 'Unregelmässiger Subjonctif – auswendig lernen!'
@@ -156,4 +157,70 @@ const AUX_CONTEXT = [
   ['nous', 'sortir', 'la poubelle.', 'avoir'], ['nous', 'sortir', 'ce soir.', 'être'],
   ['tu', 'rentrer', 'le vélo.', 'avoir'], ['tu', 'rentrer', 'à minuit.', 'être'],
   ['je', 'retourner', 'la crêpe.', 'avoir'], ['je', 'retourner', 'en France.', 'être'],
+];
+
+/* ---------- Impératif (Dossier 1.3) ---------- */
+function imperatifTips(v, pi) {
+  const inf = baseInf(v.inf), tips = [];
+  if (IMPER_IRR[inf]) return ['Unregelmässiger Impératif – auswendig lernen: avoir → aie, ayons, ayez · être → sois, soyons, soyez · savoir → sache, sachons, sachez · aller → va (vas-y), allons, allez · vouloir → veuillez.'];
+  tips.push('Impératif = Präsens von tu, nous, vous – aber ohne Subjektpronomen (finis, finissons, finissez).');
+  if (pi === 1) tips.push('Bei Verben auf -er, bei cocos-Verben und bei aller fällt bei tu das -s weg: parle, ouvre, va! Sonst bleibt es: finis, pars, prends.');
+  if (v.refl) tips.push('Reflexiv: Pronomen mit Bindestrich danach → lève-toi, levons-nous, levez-vous. Verneint: ne te lève pas.');
+  return tips;
+}
+
+/* ---------- Emploi des temps du passé (Dossier 2.1 / 2.2) ----------
+   Jede Lücke: [Infinitiv (wie angezeigt), Lösung, Regel]
+   Regeln: desc = Zustand/Beschreibung, hab = Gewohnheit, cours = Handlung im Gange,
+           unique = einmalige/abgeschlossene Handlung, suite = Abfolge von Handlungen,
+           ante = Vorzeitigkeit (plus-que-parfait) */
+const PAST_RULES = {
+  desc: 'Imparfait: Zustand, Situation, Beschreibung – der „Hintergrund“ (Foto). Ex. Il pleuvait. Ils étaient malades.',
+  hab: "Imparfait: Gewohnheit, Wiederholung (d'habitude, souvent, chaque jour, tous les matins, autrefois).",
+  cours: "Imparfait: Handlung, die schon im Gange ist, wenn eine andere passiert (pendant que …). Ex. Pendant qu'il lisait, sa mère est entrée.",
+  unique: 'Passé composé: einmalige, abgeschlossene Handlung mit Anfang und Ende (hier, ce jour-là, tout à coup, soudain). Ex. Molière est mort en 1673.',
+  suite: "Passé composé: Abfolge von Handlungen – „Was geschah dann?“ (d'abord, ensuite, puis, enfin) – der „Film“.",
+  ante: 'Plus-que-parfait: Die Handlung war schon VORHER passiert (Vorzeitigkeit, „déjà“). avoir/être im imparfait + participe passé.',
+};
+const PAST_SENTENCES = [
+  ["Il {0} l'avenue, brusquement, une voiture {1} en face de lui.", [['traverser', 'traversait', 'cours'], ['arriver', 'est arrivée', 'unique']]],
+  ["Il {0} à pleuvoir pendant qu'elle {1} tranquillement.", [['commencer', 'a commencé', 'unique'], ['se promener', 'se promenait', 'cours']]],
+  ["Je {0} les vitrines des magasins et, à un moment, j'{1} quelqu'un m'appeler.", [['regarder', 'regardais', 'cours'], ['entendre', 'ai entendu', 'unique']]],
+  ['Salomé {0} assise à la terrasse du café quand elle {1} un énorme bruit.', [['être', 'était', 'desc'], ['entendre', 'a entendu', 'unique']]],
+  ['Quand Lucie {0}, le film {1}.', [['arriver', 'est arrivée', 'unique'], ['déjà commencer', 'avait déjà commencé', 'ante']]],
+  ["Paul n'est pas venu au cinéma avec nous car il {0} le film.", [['déjà voir', 'avait déjà vu', 'ante']]],
+  ["Laura n'a pas réussi son examen car elle {0}.", [['ne pas réviser', "n'avait pas révisé", 'ante']]],
+  ["Lorsqu'ils sont arrivés à la gare, le train {0}.", [['déjà partir', 'était déjà parti', 'ante']]],
+  ["Quand le policier {0}, le voleur {1} l'argent dans la caisse.", [['arriver', 'est arrivé', 'unique'], ['déjà prendre', 'avait déjà pris', 'ante']]],
+  ["Suzanne s'est sentie mieux car elle {0} un cachet d'aspirine.", [['prendre', 'avait pris', 'ante']]],
+  ["J'ai revu l'ami que j'{0} en Grèce l'année passée.", [['rencontrer', 'avais rencontré', 'ante']]],
+  ["Elle a retrouvé le livre qu'elle {0} la semaine dernière.", [['perdre', 'avait perdu', 'ante']]],
+  ['Léo a perdu le stylo que ses parents lui {0} pour son anniversaire.', [['offrir', 'avaient offert', 'ante']]],
+  ["Elle est retournée chez elle parce qu'elle {0} d'éteindre la lumière.", [['oublier', 'avait oublié', 'ante']]],
+  ["Chaque jour, j'{0} à l'école.", [['aller', 'allais', 'hab']]],
+  ['Hier, ils {0} toute la journée.', [['travailler', 'ont travaillé', 'unique']]],
+  ["Pendant qu'il {0} un roman, sa mère {1}.", [['lire', 'lisait', 'cours'], ['entrer', 'est entrée', 'unique']]],
+  ['Nous {0} sortir quand la pluie {1}.', [['vouloir', 'voulions', 'cours'], ['commencer', 'a commencé', 'unique']]],
+  ['Molière {0} en 1673.', [['mourir', 'est mort', 'unique']]],
+  ['Christophe Colomb {0} en 1506. Il {1} 55 ans.', [['mourir', 'est mort', 'unique'], ['avoir', 'avait', 'desc']]],
+  ["13 ans plus tôt, il {0} l'Amérique.", [['découvrir', 'avait découvert', 'ante']]],
+  ["Quand l'enseignante {0} dans la salle de classe, il y {1} beaucoup de bruit.", [['entrer', 'est entrée', 'unique'], ['avoir', 'avait', 'desc']]],
+  ['La fenêtre {0} ouverte et un garçon {1} un sandwich.', [['être', 'était', 'desc'], ['manger', 'mangeait', 'desc']]],
+  ['Tout à coup, la porte {0} et tous les élèves {1} à leurs places.', [['claquer', 'a claqué', 'suite'], ["s'asseoir", 'se sont assis', 'suite']]],
+  ["Tous les jours, Ethan {0} la télécabine pour aller à l'école.", [['prendre', 'prenait', 'hab']]],
+  ['Ce jour-là, à 6 h 45, il {0} déjà très chaud.', [['faire', 'faisait', 'desc']]],
+  ['Ethan {0} son nouveau sac à dos que ses parents lui {1} deux jours avant.', [['prendre', 'a pris', 'suite'], ['offrir', 'avaient offert', 'ante']]],
+  ["À l'arrêt du bus, les gens {0} le journal et {1}.", [['lire', 'lisaient', 'desc'], ['attendre', 'attendaient', 'desc']]],
+  ['Ce soir-là, vers onze heures, nous {0} un bruit dans le jardin.', [['entendre', 'avons entendu', 'suite']]],
+  ["D'habitude, nous {0} vers midi.", [['se promener', 'nous promenions', 'hab']]],
+  ['Le soir, on {0} toujours ensemble.', [['sortir', 'sortait', 'hab']]],
+  ['Ma grand-mère {0} il y a trois ans.', [['mourir', 'est morte', 'unique']]],
+  ['Hier soir, ma sœur {0} au cinéma et elle {1} ma nièce avec elle.', [['aller', 'est allée', 'suite'], ['emmener', 'a emmené', 'suite']]],
+  ['Les garçons {0} de bonne heure.', [['se lever', 'se sont levés', 'unique']]],
+  ['Elles {0} tard et ce matin, elles {1} avec difficulté.', [["s'endormir", 'se sont endormies', 'suite'], ['se lever', 'se sont levées', 'unique']]],
+  ["Quand j'étais petit, je {0} souvent au foot.", [['jouer', 'jouais', 'hab']]],
+  ["Elle a vu la neige pour la première fois à trente ans, elle n'{0} à la montagne avant.", [['jamais aller', 'était jamais allée', 'ante']]],
+  ['Emma {0} son repas quand sa maman lui {1}.', [['déjà commencer', 'avait déjà commencé', 'ante'], ['téléphoner', 'a téléphoné', 'unique']]],
+  ["Autrefois, les Alsaciens {0} l'arbre au plafond.", [['suspendre', 'suspendaient', 'hab']]],
+  ["Nous {0} le week-end de Noël en Alsace et c'{1} étonnant !", [['passer', 'avons passé', 'unique'], ['être', 'était', 'desc']]],
 ];

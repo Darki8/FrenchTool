@@ -121,6 +121,24 @@ function compound(v, auxForms) {
     `${a} ${etre ? p + (i < 3 ? '(e)' : '(e)s') : p}`)));
 }
 
+/* Impératif: nur tu (1), nous (3), vous (4) – Formen vom Präsens ohne Pronomen.
+   Bei tu fällt das -s weg, wenn die Form auf -es endet (parle, ouvre) und bei aller (va). */
+const IMPER_IRR = {
+  avoir: ['', 'aie', '', 'ayons', 'ayez', ''],
+  être: ['', 'sois', '', 'soyons', 'soyez', ''],
+  savoir: ['', 'sache', '', 'sachons', 'sachez', ''],
+  vouloir: ['', '', '', '', 'veuillez', ''],
+  aller: ['', 'va', '', 'allons', 'allez', ''],
+};
+const NO_IMPER = ['pouvoir', 'devoir', 'falloir', 'pleuvoir', 'neiger'];
+function computeImperatif(v, present) {
+  if (v.imper) return v.imper;
+  if (IMPER_IRR[v.inf]) return IMPER_IRR[v.inf];
+  if (v.impers || NO_IMPER.includes(v.inf)) return ['', '', '', '', '', ''];
+  const tu = uniqJoin(splitAlt(present[1]).map(f => /es$/.test(f) ? f.slice(0, -1) : f));
+  return ['', tu, '', present[3], present[4], ''];
+}
+
 /* Reflexivpronomen vor eine Form setzen (me/m', te/t', se/s') */
 function withRefl(i, form) {
   const p = REFL[i];
@@ -147,6 +165,7 @@ function conjugate(v) {
     futproche: ALLER.map(a => a + ' ' + v.inf),
     futant: compound(vv, aux.futur),
     condpasse: compound(vv, aux.conditionnel),
+    imperatif: computeImperatif(vv, present),
   };
   // unpersönliche Verben (il faut, il pleut): nur die 3. Person Singular
   if (v.impers) for (const k in out) out[k] = out[k].map((f, i) => i === 2 ? f : '');
@@ -160,6 +179,9 @@ function conjugateRefl(v) {
   const out = {};
   for (const k in r) out[k] = r[k].map((f, i) => f ? withRefl(i, f) : '');
   out.futproche = ALLER.map((a, i) => a + ' ' + withRefl(i, base));
+  // Impératif reflexiv: lève-toi, levons-nous, levez-vous
+  const IMP_PRON = ['', 'toi', '', 'nous', 'vous', ''];
+  out.imperatif = r.imperatif.map((f, i) => f ? uniqJoin(splitAlt(f).map(x => x + '-' + IMP_PRON[i])) : '');
   const F = v.forms || {};
   for (const k in F) if (Array.isArray(F[k]) && F[k].length === 6) out[k] = F[k];
   return out;
