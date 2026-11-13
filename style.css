@@ -426,7 +426,7 @@ textarea { min-height: 180px; resize: vertical; font-family: ui-monospace, Conso
 .score-lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--faint); }
 .score-box b { font-size: 18px; color: var(--blue-d); }
 .score-box span:last-child { color: var(--muted); font-size: 14px; }
-.play-top .bar.hidden + .score-box { margin-left: auto; }
+.play-top .bar.hidden + .play-stats, .play-top .bar.hidden + .play-stats.calm + .eye-btn { margin-left: auto; }
 .play-meta.low { color: var(--red); }
 .play-tools { display: flex; justify-content: flex-end; gap: 8px; max-width: 1000px; width: 100%; margin: 12px auto 0; padding: 0 16px; }
 .pverb { color: var(--head); font-weight: 900; }
@@ -753,3 +753,10 @@ body, .topbar, .card, .play-foot { transition: background-color .25s, border-col
   .tab:not(.active) .tab-txt { display: none; }
   .tab { padding: 8px 12px; }
 }
+
+/* Ruhemodus: Punkte & Uhr während der Übung ausgeblendet (👁 blendet sie ein) */
+.play-stats { display: flex; align-items: center; gap: 16px; }
+.play-stats.calm { display: none; }
+.eye-btn { font-size: 20px; opacity: .55; flex: none; }
+.eye-btn.on { opacity: 1; }
+.eye-btn:hover { opacity: 1; }

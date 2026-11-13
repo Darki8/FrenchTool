@@ -161,7 +161,7 @@ function owlSVG(mood = 'happy', opts = {}) {
    ========================================================= */
 const KEY = 'hibou-verbes-v2';
 const DEFAULTS = {
-  settings: { set: 'stem', perSet: {}, ignoreAccents: false, sound: true, speak: true, outfit: {} },
+  settings: { set: 'stem', perSet: {}, ignoreAccents: false, sound: true, speak: true, outfit: {}, showStats: false },
   custom: [],
   vocab: {},
   gpBest: {},
@@ -581,8 +581,11 @@ function startSession(reviewItems, mode = setupMode, opts = {}) {
     <div class="play-top">
       <button class="icon-btn" id="quitBtn" title="Schließen">✕</button>
       <div class="bar big ${S.timed || S.review || S.test ? '' : 'hidden'}"><div class="bar-fill" id="progFill" style="width:${S.timed ? 100 : 0}%"></div></div>
-      <div class="score-box"><span class="score-lbl">${S.test ? 'Frage' : 'Punkte'}</span><b id="scoreTxt">0/0</b><span id="pctTxt">0%</span></div>
-      <div class="play-meta" id="playMeta"></div>
+      <div class="play-stats ${state.settings.showStats ? '' : 'calm'}" id="playStats">
+        <div class="score-box"><span class="score-lbl">${S.test ? 'Frage' : 'Punkte'}</span><b id="scoreTxt">0/0</b><span id="pctTxt">0%</span></div>
+        <div class="play-meta" id="playMeta"></div>
+      </div>
+      <button class="icon-btn eye-btn ${state.settings.showStats ? 'on' : ''}" id="statsBtn" aria-pressed="${!!state.settings.showStats}" title="${state.settings.showStats ? 'Punkte & Zeit ausblenden' : 'Punkte & Zeit einblenden'}">👁</button>
     </div>
     <div class="play-tools">
       <button class="mini-btn" id="replayBtn">↻ Neu starten</button>
@@ -1066,6 +1069,12 @@ $('#screen-play').addEventListener('click', e => {
   else if (b.id === 'flipBtn') flipCard();
   else if (b.id === 'cardYes') { S.cardOk = true; check(false); }
   else if (b.id === 'cardNo') { S.cardOk = false; check(false); }
+  else if (b.id === 'statsBtn') {
+    state.settings.showStats = !state.settings.showStats; save();
+    $('#playStats').classList.toggle('calm', !state.settings.showStats);
+    b.classList.toggle('on', state.settings.showStats); b.setAttribute('aria-pressed', String(state.settings.showStats));
+    b.title = state.settings.showStats ? 'Punkte & Zeit ausblenden' : 'Punkte & Zeit einblenden';
+  }
   else if (b.id === 'endBtn') finish();
   else if (b.id === 'replayBtn') { const m = S.test ? 'test' : S.mode, o = S.opts; stopSession(); if (o.again) o.again(); else startSession(null, m); }
   else if (b.id === 'quitBtn') {
