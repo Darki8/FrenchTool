@@ -262,7 +262,7 @@ GP('g-abs', 'gesch', '👑', 'Absolutismus', `
 Absolutismus = Regierungsform mit einem Monarchen, der unbeschränkt herrscht und seine Macht von Gott ableitet (Gottesgnadentum); vorherrschend im 17./18. Jh.
 Gottesgnadentum = Der König ist von Gott eingesetzt und nur Gott Rechenschaft schuldig
 Ludwig XIV. = der «Sonnenkönig», regierte Frankreich 1643–1715; Vorbild des Absolutismus («L'État, c'est moi»)
-Versailles = prunkvolles Schloss Ludwigs XIV., erbaut ca. 1685–1690 mit 36 000 Arbeitern; Zentrum der Macht, wo der Adel kontrolliert wurde
+Versailles = prunkvolles Schloss Ludwigs XIV., grosser Ausbau 1685–1690 mit 36 000 Arbeitern und 6000 Pferden; Zentrum der Macht, wo der Adel kontrolliert wurde
 Säulen des Absolutismus = stehendes Heer, Beamte (Bürokratie), Merkantilismus, Kirche, Hofstaat
 Merkantilismus = staatlich gelenkte Wirtschaft im Absolutismus: viel exportieren, wenig importieren, Manufakturen fördern – um die Staatskasse zu füllen
 Stehendes Heer = Armee, die auch in Friedenszeiten besteht (statt nur im Krieg angeworbener Söldner)
@@ -362,7 +362,7 @@ Restauration (1814–1830) = Rückkehr zur alten Ordnung nach Napoleon; Bundesve
 1815 = Wiener Kongress: Neutralität der Schweiz anerkannt, heutige Landesgrenzen festgelegt
 Regeneration (1830–1848) = Liberale setzen in vielen Kantonen neue, demokratischere Verfassungen durch
 Liberale vs. Konservative = Liberale wollten einen modernen Bundesstaat mit Freiheitsrechten; Konservative wollten die alte, kantonal geprägte Ordnung bewahren
-Sonderbund = Separatbündnis der 7 katholisch-konservativen Kantone (1845)
+Sonderbund = Separatbündnis der 8 katholisch-konservativen Kantone (Luzern, Uri, Schwyz, Obwalden, Nidwalden, Zug, Freiburg, Wallis), 1845
 Sonderbundskrieg (1847) = letzter Bürgerkrieg der Schweiz: Liberale (General Dufour) besiegen die katholisch-konservativen Kantone; knapp 90 Tote
 Bundesverfassung 1848 = Gründung des modernen Bundesstaates: Bundesrat, Zweikammerparlament, einheitlicher Wirtschaftsraum (keine Binnenzölle mehr)
 Binnenzölle = Zölle innerhalb des Landes (an Kantonsgrenzen, Brücken, Pässen) – 1848 abgeschafft

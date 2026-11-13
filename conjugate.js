@@ -118,7 +118,8 @@ function compound(v, auxForms) {
   const pp = getPP(v);
   const etre = v.aux === 'être';
   return auxForms.map((a, i) => uniqJoin(splitAlt(pp).map(p =>
-    `${a} ${etre ? p + (i < 3 ? '(e)' : '(e)s') : p}`)));
+    // Partizip auf -s (assis): Plural nur (es) – sonst entstünde „assiss“
+    `${a} ${etre ? p + (i < 3 ? '(e)' : p.endsWith('s') ? '(es)' : '(e)s') : p}`)));
 }
 
 /* Impératif: nur tu (1), nous (3), vous (4) – Formen vom Präsens ohne Pronomen.

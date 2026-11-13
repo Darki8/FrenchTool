@@ -869,7 +869,7 @@ jaloux, jalouse = eifersüchtig | jaloux de = eifersüchtig auf
 le partenaire, la partenaire = der Partner, die Partnerin
 la relation = die Beziehung
 le divorce = die Scheidung
-divorcer = sich scheiden
+divorcer = sich scheiden lassen
 # Freundschaft und weitere soziale Kontakte
 l'amitié = die Freundschaft | f.
 l'ami, l'amie = der Freund, die Freundin

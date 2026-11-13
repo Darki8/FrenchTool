@@ -112,7 +112,7 @@ function owlSVG(mood = 'happy', opts = {}) {
     Object.assign(wear, (typeof state !== 'undefined' && state.settings.outfit) || {});
     const so = typeof state !== 'undefined' && state.settings.subjectOutfit !== false && owlSubject && SUBJECT_OUTFIT[owlSubject];
     if (so) wear[so[0]] = so[1];
-    else if (isNight()) wear.head = 'nightcap';
+    else if (isNight() && !wear.head) wear.head = 'nightcap';   // eigene Kopfbedeckung hat Vorrang
   }
   if (opts.shades) wear.face = 'shades';
   if (mood === 'sleep') {
@@ -1845,7 +1845,7 @@ function renderStats() {
       </div>
       <label class="toggle"><span>Fach-Outfits<small>Napoleon-Hut bei Geschichte, Krawatte bei Politik, Baskenmütze bei Französisch</small></span>
         <span class="switch"><input type="checkbox" id="subjOut" ${state.settings.subjectOutfit !== false ? 'checked' : ''}><span class="slider"></span></span></label>
-      <p class="hint">Mit XP schaltest du neue Outfits frei. Klicke auf ein Outfit, um es an- oder auszuziehen.${isNight() ? ' 🌙 Es ist spät – ${esc(owlName())} trägt gerade seine Schlafmütze.' : ''}</p>
+      <p class="hint">Mit XP schaltest du neue Outfits frei. Klicke auf ein Outfit, um es an- oder auszuziehen.${isNight() ? ` 🌙 Es ist spät – ohne eigene Kopfbedeckung trägt ${esc(owlName())} jetzt die Schlafmütze.` : ''}</p>
       <div class="wardrobe">${OUTFITS.map(o => {
         const open = s.xp >= o.xp, on = (state.settings.outfit || {})[o.slot] === o.id;
         return `<button class="ward ${on ? 'on' : ''} ${open ? '' : 'locked'}" data-outfit="${o.id}" ${open ? '' : 'disabled'}>
