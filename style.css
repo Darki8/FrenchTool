@@ -690,3 +690,66 @@ body, .topbar, .card, .play-foot { transition: background-color .25s, border-col
   .hud { gap: 6px; font-size: 13px; }
   .theme-btn { width: 32px; height: 32px; font-size: 16px; flex: none; }
 }
+
+/* =========================================================
+   Geschichte & Politik
+   ========================================================= */
+.gp-modes { grid-template-columns: repeat(3, 1fr); }
+.gp-pol { background: #CE82FF; box-shadow: 0 3px 0 #A568CC; }
+.gp-gesch { background: #FF9600; box-shadow: 0 3px 0 #CC7A00; }
+.tr-num.gp-pol, .tr-num.gp-gesch { font-size: 20px; }
+.gp-row { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) auto; }
+.quiz-q { font-size: 20px; line-height: 1.4; }
+.choices.quiz .choice { font-size: 16px; text-align: left; justify-content: flex-start; line-height: 1.3; }
+.flash-back.long b { font-size: 18px; line-height: 1.45; }
+
+/* Zeitstrahl */
+.tl-list { display: grid; gap: 10px; }
+.tl-item {
+  display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px; font: inherit; font-weight: 700;
+  border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 14px; background: var(--surface); color: var(--text);
+}
+.tl-item:hover:not(:disabled) { background: var(--soft); }
+.tl-n { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px dashed var(--line); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; }
+.tl-item.on { border-color: var(--blue-b); background: var(--blue-l); }
+.tl-item.on .tl-n { background: var(--blue); border: 0; }
+.tl-t { flex: 1; }
+.tl-y { font-weight: 900; color: var(--muted); }
+.tl-item.right { border-color: var(--blue); }
+.tl-item.wrong { border-color: var(--red); background: var(--red-l); }
+.tl-item.wrong .tl-n { background: var(--red); }
+
+/* Zuordnen */
+.match { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; }
+.m-col { display: grid; gap: 10px; align-content: start; }
+.m-item {
+  text-align: left; padding: 10px 12px; font: inherit; font-size: 14px; font-weight: 700; line-height: 1.35;
+  border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 14px; background: var(--surface); color: var(--text); min-height: 52px;
+}
+.m-l { font-weight: 900; color: var(--head); }
+.m-item:hover:not(:disabled) { background: var(--soft); }
+.m-item.sel { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-b); }
+.m-item.pair-0 { border-color: #1CB0F6; background: rgba(28, 176, 246, .14); }
+.m-item.pair-1 { border-color: #CE82FF; background: rgba(206, 130, 255, .16); }
+.m-item.pair-2 { border-color: #FF9600; background: rgba(255, 150, 0, .14); }
+.m-item.pair-3 { border-color: #2EC4B6; background: rgba(46, 196, 182, .16); }
+.m-item.right { outline: 3px solid var(--blue); }
+.m-item.wrong { outline: 3px solid var(--red); }
+
+/* Eulen-Einstellungen */
+.owl-cfg { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 8px; }
+.owl-cfg .field { flex: 1; min-width: 180px; margin: 0; display: grid; gap: 4px; font-weight: 800; }
+.owl-cfg input { padding: 10px 12px; border: 2px solid var(--line); border-radius: 12px; background: var(--soft); font-size: 16px; font-weight: 700; }
+
+@media (max-width: 900px) { .gp-modes { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 680px) {
+  .gp-modes { grid-template-columns: 1fr; }
+  .match { grid-template-columns: 1fr; }
+  .gp-row { grid-template-columns: 1fr; }
+  .quiz-q { font-size: 17px; }
+}
+/* 5 Tabs: auf mittleren Bildschirmen nur beim aktiven Tab den Text zeigen */
+@media (max-width: 1250px) and (min-width: 681px) {
+  .tab:not(.active) .tab-txt { display: none; }
+  .tab { padding: 8px 12px; }
+}
